@@ -35,7 +35,8 @@ const NewsEventsSection = () => {
         <motion.h2
           className="mb-8 text-3xl font-bold text-foreground"
           initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
           Notícias & Eventos
@@ -51,7 +52,8 @@ const NewsEventsSection = () => {
                   key={item.title}
                   variants={fadeUp}
                   initial="hidden"
-                  animate="visible"
+                  whileInView="visible"
+                  viewport={{ once: true }}
                   custom={i}
                 >
                   <Card className="flex items-start gap-4 rounded-2xl border-border/50 p-4 transition-all hover:border-accent/30 hover:shadow-md cursor-pointer">
@@ -79,7 +81,8 @@ const NewsEventsSection = () => {
                   key={event.title}
                   variants={fadeUp}
                   initial="hidden"
-                  animate="visible"
+                  whileInView="visible"
+                  viewport={{ once: true }}
                   custom={i}
                 >
                   <Card className="rounded-2xl border-border/50 p-4 transition-all hover:border-accent/30 hover:shadow-md">

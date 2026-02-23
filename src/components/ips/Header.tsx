@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Search, Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navMenus = [
-  { label: "Academics", items: ["Undergraduate", "Graduate", "Online Learning", "Academic Calendar"] },
-  { label: "Admissions", items: ["Apply Now", "Tuition & Aid", "Visit Campus", "Transfer Students"] },
-  { label: "Research", items: ["Research Centers", "Publications", "Partnerships", "Innovation Lab"] },
-  { label: "Campus Life", items: ["Housing", "Student Clubs", "Dining", "Health Services"] },
-  { label: "Athletics", items: ["Sports Teams", "Facilities", "Schedules", "News"] },
+  { label: "Cursos", items: ["Cursos Técnicos", "Calendário Académico", "Biblioteca"] },
+  { label: "Admissões", items: ["Candidatar-se", "Propinas", "Visitar o Campus", "Requisitos"] },
+  { label: "Instituição", items: ["Sobre o IPS", "Direcção", "Parcerias", "Contacto"] },
+  { label: "Vida no Campus", items: ["Alojamento", "Clubes", "Serviços de Saúde", "Desporto"] },
 ];
 
 const Header = () => {
@@ -72,9 +72,11 @@ const Header = () => {
           >
             <Search className="h-4 w-4" />
           </Button>
-          <Button variant="heroPrimary" size="sm" className="hidden sm:flex">
-            Admissions
-          </Button>
+          <Link to="/admissions">
+            <Button variant="heroPrimary" size="sm" className="hidden sm:flex">
+              Admissões
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
@@ -104,9 +106,11 @@ const Header = () => {
               </div>
             ))}
             <Input placeholder="Search..." className="mt-2 rounded-xl" />
-            <Button variant="heroPrimary" className="mt-2 w-full">
-              Admissions
-            </Button>
+            <Link to="/admissions">
+              <Button variant="heroPrimary" className="mt-2 w-full">
+                Admissões
+              </Button>
+            </Link>
           </div>
         </div>
       )}
