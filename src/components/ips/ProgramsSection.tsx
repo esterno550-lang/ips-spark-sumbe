@@ -56,7 +56,8 @@ const ProgramsSection = () => {
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl font-bold text-foreground">Encontrar Programas</h2>
@@ -67,7 +68,8 @@ const ProgramsSection = () => {
         <motion.div
           className="mb-8 flex flex-col gap-3 sm:flex-row"
           initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
           <div className="relative flex-1">
@@ -99,7 +101,8 @@ const ProgramsSection = () => {
               key={program.name}
               variants={fadeUp}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
               custom={i}
             >
               <Card className="group flex h-full flex-col justify-between rounded-2xl border-border/50 p-5 transition-all hover:border-accent/30 hover:shadow-lg">

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield } from "lucide-react";
+import ipsLogo from "@/assets/ips-logo.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -34,6 +35,20 @@ const HeroSection = () => {
       <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-secondary/20 blur-3xl" />
 
       <div className="container mx-auto">
+        {/* Logo */}
+        <motion.div
+          className="mb-10 flex justify-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <img
+            src={ipsLogo}
+            alt="Instituto Politécnico do Sumbe"
+            className="h-40 w-auto object-contain md:h-52"
+          />
+        </motion.div>
+
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
           {/* Left */}
           <div>
@@ -78,18 +93,18 @@ const HeroSection = () => {
               className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4"
               variants={fadeUp}
               initial="hidden"
-              animate="visible"
-              custom={3}
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              custom={0}
             >
-              {stats.map((stat) => (
-                <Card
-                  key={stat.label}
-                  className="flex flex-col items-center gap-1 rounded-2xl border-border/50 bg-card/60 p-4 backdrop-blur-sm"
-                >
-                  <stat.icon className="h-5 w-5 text-accent" />
-                  <span className="text-2xl font-bold text-foreground">{stat.value}</span>
-                  <span className="text-xs text-muted-foreground">{stat.label}</span>
-                </Card>
+              {stats.map((stat, i) => (
+                <motion.div key={stat.label} variants={fadeUp} custom={i}>
+                  <Card className="flex flex-col items-center gap-1 rounded-2xl border-border/50 bg-card/60 p-4 backdrop-blur-sm">
+                    <stat.icon className="h-5 w-5 text-accent" />
+                    <span className="text-2xl font-bold text-foreground">{stat.value}</span>
+                    <span className="text-xs text-muted-foreground">{stat.label}</span>
+                  </Card>
+                </motion.div>
               ))}
             </motion.div>
           </div>
@@ -98,8 +113,9 @@ const HeroSection = () => {
           <motion.div
             variants={fadeUp}
             initial="hidden"
-            animate="visible"
-            custom={4}
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            custom={0}
           >
             <Card className="rounded-2xl border-border/50 bg-card/80 p-6 backdrop-blur-sm">
               <h3 className="mb-4 text-lg font-semibold text-foreground">Links Rápidos</h3>

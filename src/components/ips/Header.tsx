@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Search, Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,8 +73,8 @@ const Header = () => {
           >
             <Search className="h-4 w-4" />
           </Button>
-          <Button variant="heroPrimary" size="sm" className="hidden sm:flex">
-            Admissions
+          <Button variant="heroPrimary" size="sm" className="hidden sm:flex" asChild>
+            <Link to="/admissions">Admissions</Link>
           </Button>
           <Button
             variant="ghost"
@@ -104,8 +105,8 @@ const Header = () => {
               </div>
             ))}
             <Input placeholder="Search..." className="mt-2 rounded-xl" />
-            <Button variant="heroPrimary" className="mt-2 w-full">
-              Admissions
+            <Button variant="heroPrimary" className="mt-2 w-full" asChild>
+              <Link to="/admissions">Admissions</Link>
             </Button>
           </div>
         </div>
