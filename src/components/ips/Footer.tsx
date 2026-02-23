@@ -1,19 +1,19 @@
 const footerLinks = [
   {
-    title: "Academics",
-    links: ["Programs", "Online Learning", "Academic Calendar", "Library", "Faculty Directory"],
+    title: "Cursos",
+    links: ["Cursos Técnicos", "Calendário Académico", "Biblioteca", "Corpo Docente"],
   },
   {
-    title: "Admissions",
-    links: ["Apply Now", "Tuition & Aid", "Visit Campus", "Transfer Students", "International"],
+    title: "Admissões",
+    links: ["Candidatar-se", "Propinas", "Visitar o Campus", "Requisitos"],
   },
   {
     title: "Campus",
-    links: ["Housing", "Dining", "Health Services", "Student Clubs", "Athletics"],
+    links: ["Alojamento", "Serviços de Saúde", "Clubes", "Desporto"],
   },
   {
-    title: "About",
-    links: ["Our History", "Leadership", "Careers", "Contact Us", "News"],
+    title: "Sobre",
+    links: ["A Nossa História", "Direcção", "Carreiras", "Contacto", "Notícias"],
   },
 ];
 

@@ -13,18 +13,16 @@ import {
 } from "@/components/ui/select";
 
 const programs = [
-  { name: "Engenharia Mecânica", area: "Engenharia", level: "Licenciatura", duration: "5 anos" },
-  { name: "Ciências da Computação", area: "Tecnologia", level: "Licenciatura", duration: "4 anos" },
-  { name: "Engenharia Civil", area: "Engenharia", level: "Licenciatura", duration: "5 anos" },
-  { name: "Agronomia", area: "Ciências Agrárias", level: "Licenciatura", duration: "5 anos" },
-  { name: "Gestão de Empresas", area: "Gestão", level: "Licenciatura", duration: "4 anos" },
-  { name: "Contabilidade e Finanças", area: "Gestão", level: "Licenciatura", duration: "4 anos" },
-  { name: "Engenharia Electrotécnica", area: "Engenharia", level: "Licenciatura", duration: "5 anos" },
-  { name: "Matemática", area: "Ciências", level: "Licenciatura", duration: "4 anos" },
-  { name: "Biologia", area: "Ciências", level: "Licenciatura", duration: "4 anos" },
-  { name: "Enfermagem", area: "Saúde", level: "Licenciatura", duration: "4 anos" },
-  { name: "Arquitectura", area: "Engenharia", level: "Licenciatura", duration: "5 anos" },
-  { name: "Direito", area: "Ciências Sociais", level: "Licenciatura", duration: "5 anos" },
+  { name: "Mecânica Industrial", area: "Técnico", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Informática", area: "Tecnologia", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Construção Civil", area: "Técnico", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Agropecuária", area: "Ciências Agrárias", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Gestão e Administração", area: "Gestão", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Contabilidade", area: "Gestão", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Electrotecnia", area: "Técnico", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Enfermagem", area: "Saúde", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Análises Clínicas", area: "Saúde", level: "Ensino Médio Técnico", duration: "4 anos" },
+  { name: "Electrónica", area: "Tecnologia", level: "Ensino Médio Técnico", duration: "4 anos" },
 ];
 
 const areas = [...new Set(programs.map((p) => p.area))];
@@ -56,7 +54,8 @@ const ProgramsSection = () => {
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl font-bold text-foreground">Encontrar Programas</h2>
@@ -67,7 +66,8 @@ const ProgramsSection = () => {
         <motion.div
           className="mb-8 flex flex-col gap-3 sm:flex-row"
           initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
           <div className="relative flex-1">
@@ -99,7 +99,8 @@ const ProgramsSection = () => {
               key={program.name}
               variants={fadeUp}
               initial="hidden"
-              animate="visible"
+              whileInView="visible"
+              viewport={{ once: true }}
               custom={i}
             >
               <Card className="group flex h-full flex-col justify-between rounded-2xl border-border/50 p-5 transition-all hover:border-accent/30 hover:shadow-lg">
