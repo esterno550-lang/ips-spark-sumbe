@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, Menu, X, ChevronDown } from "lucide-react";
+import { Search, Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,27 +12,51 @@ import {
 
 const navMenus = [
   { label: "Cursos", items: ["Cursos Técnicos", "Calendário Académico", "Biblioteca"] },
-  { label: "Admissões", items: ["Candidatar-se", "Propinas", "Visitar o Campus", "Requisitos"] },
-  { label: "Instituição", items: ["Sobre o IPS", "Direcção", "Parcerias", "Contacto"] },
+  { label: "Admissões", items: ["Candidatar-se", "Propinas", "Visitar o Campus", "Requisitos"], link: "/admissions" },
+  { label: "Instituição", items: [{ label: "Sobre o IPS", link: "/about" }, "Direcção", "Parcerias", "Contacto"] },
   { label: "Vida no Campus", items: ["Alojamento", "Clubes", "Serviços de Saúde", "Desporto"] },
 ];
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [dark]);
+
+  const renderMenuItem = (item: string | { label: string; link: string }) => {
+    if (typeof item === "string") {
+      return (
+        <DropdownMenuItem key={item} className="rounded-lg cursor-pointer">
+          {item}
+        </DropdownMenuItem>
+      );
+    }
+    return (
+      <DropdownMenuItem key={item.label} className="rounded-lg cursor-pointer" asChild>
+        <Link to={item.link}>{item.label}</Link>
+      </DropdownMenuItem>
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card/80 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">
             IPS
           </div>
           <span className="hidden font-bold text-foreground sm:inline-block">
             Instituto Politécnico do Sumbe
           </span>
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden items-center gap-1 lg:flex">
@@ -45,11 +69,7 @@ const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="rounded-xl">
-                {menu.items.map((item) => (
-                  <DropdownMenuItem key={item} className="rounded-lg cursor-pointer">
-                    {item}
-                  </DropdownMenuItem>
-                ))}
+                {menu.items.map((item) => renderMenuItem(item))}
               </DropdownMenuContent>
             </DropdownMenu>
           ))}
@@ -58,31 +78,20 @@ const Header = () => {
         {/* Right side */}
         <div className="flex items-center gap-2">
           {searchOpen && (
-            <Input
-              placeholder="Search..."
-              className="hidden w-48 rounded-xl md:block"
-              autoFocus
-            />
+            <Input placeholder="Pesquisar..." className="hidden w-48 rounded-xl md:block" autoFocus />
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSearchOpen(!searchOpen)}
-            className="hidden md:flex"
-          >
+          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(!searchOpen)} className="hidden md:flex">
             <Search className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => setDark(!dark)} aria-label="Alternar tema">
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
           <Link to="/admissions">
             <Button variant="heroPrimary" size="sm" className="hidden sm:flex">
               Admissões
             </Button>
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
@@ -95,21 +104,25 @@ const Header = () => {
             {navMenus.map((menu) => (
               <div key={menu.label}>
                 <p className="mb-1 text-sm font-semibold text-foreground">{menu.label}</p>
-                {menu.items.map((item) => (
-                  <button
-                    key={item}
-                    className="block w-full rounded-lg px-3 py-1.5 text-left text-sm text-muted-foreground hover:bg-muted"
-                  >
-                    {item}
-                  </button>
-                ))}
+                {menu.items.map((item) => {
+                  if (typeof item === "string") {
+                    return (
+                      <button key={item} className="block w-full rounded-lg px-3 py-1.5 text-left text-sm text-muted-foreground hover:bg-muted">
+                        {item}
+                      </button>
+                    );
+                  }
+                  return (
+                    <Link key={item.label} to={item.link} className="block w-full rounded-lg px-3 py-1.5 text-left text-sm text-muted-foreground hover:bg-muted" onClick={() => setMobileOpen(false)}>
+                      {item.label}
+                    </Link>
+                  );
+                })}
               </div>
             ))}
-            <Input placeholder="Search..." className="mt-2 rounded-xl" />
+            <Input placeholder="Pesquisar..." className="mt-2 rounded-xl" />
             <Link to="/admissions">
-              <Button variant="heroPrimary" className="mt-2 w-full">
-                Admissões
-              </Button>
+              <Button variant="heroPrimary" className="mt-2 w-full">Admissões</Button>
             </Link>
           </div>
         </div>
