@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,7 +19,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, FileText, GraduationCap, CalendarDays, DollarSign } from "lucide-react";
+import { CheckCircle, Clock, FileText, GraduationCap, CalendarDays, DollarSign, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/ips/Header";
 import Footer from "@/components/ips/Footer";
 
@@ -64,20 +67,50 @@ const faqs = [
 ];
 
 const Admissions = () => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    course: "",
+    message: "",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.firstName || !form.lastName || !form.email || !form.phone || !form.course) {
+      toast({ title: "Erro", description: "Por favor preencha todos os campos obrigatórios.", variant: "destructive" });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.from("admissions").insert({
+      first_name: form.firstName,
+      last_name: form.lastName,
+      email: form.email,
+      phone: form.phone,
+      course: form.course,
+      message: form.message || null,
+    });
+    setLoading(false);
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível submeter. Tente novamente.", variant: "destructive" });
+    } else {
+      toast({ title: "Candidatura submetida!", description: "Entraremos em contacto em breve." });
+      setForm({ firstName: "", lastName: "", email: "", phone: "", course: "", message: "" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="container mx-auto px-4 py-12">
         {/* Page Header */}
-        <motion.div
-          className="mb-12 text-center"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          custom={0}
-        >
+        <motion.div className="mb-12 text-center" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0}>
           <Badge variant="secondary" className="mb-4 rounded-lg">Admissões 2026</Badge>
           <h1 className="text-4xl font-extrabold text-foreground md:text-5xl">
             Junte-se ao <span className="text-accent">IPS</span>
@@ -88,25 +121,11 @@ const Admissions = () => {
         </motion.div>
 
         {/* Timeline */}
-        <motion.section
-          className="mb-16"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          custom={1}
-        >
+        <motion.section className="mb-16" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1}>
           <h2 className="mb-8 text-2xl font-bold text-foreground">Calendário de Admissão</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {timeline.map((step, i) => (
-              <motion.div
-                key={step.title}
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-              >
+              <motion.div key={step.title} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}>
                 <Card className="flex h-full flex-col items-center gap-3 rounded-2xl border-border/50 p-5 text-center transition-all hover:border-accent/30 hover:shadow-lg">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
                     <step.icon className="h-6 w-6 text-accent" />
@@ -121,21 +140,11 @@ const Admissions = () => {
         </motion.section>
 
         <div className="grid gap-12 lg:grid-cols-2">
-          {/* Requirements & Tuition */}
           <div className="space-y-10">
-            {/* Requirements */}
-            <motion.section
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={2}
-            >
+            <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={2}>
               <h2 className="mb-6 text-2xl font-bold text-foreground">Requisitos Académicos</h2>
               <Card className="rounded-2xl border-border/50 p-6">
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Para se candidatar ao IPS, o aluno deve apresentar os seguintes documentos:
-                </p>
+                <p className="mb-4 text-sm text-muted-foreground">Para se candidatar ao IPS, o aluno deve apresentar os seguintes documentos:</p>
                 <ul className="space-y-3">
                   {requirements.map((req) => (
                     <li key={req} className="flex items-start gap-3 text-sm text-foreground">
@@ -147,14 +156,7 @@ const Admissions = () => {
               </Card>
             </motion.section>
 
-            {/* Tuition */}
-            <motion.section
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={3}
-            >
+            <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3}>
               <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-foreground">
                 <DollarSign className="h-6 w-6 text-accent" />
                 Propinas e Taxas
@@ -176,40 +178,34 @@ const Admissions = () => {
           </div>
 
           {/* Application Form */}
-          <motion.section
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            custom={2}
-          >
+          <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={2}>
             <h2 className="mb-6 text-2xl font-bold text-foreground">Formulário de Candidatura</h2>
             <Card className="rounded-2xl border-border/50 p-6">
-              <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Nome</Label>
-                    <Input id="firstName" placeholder="Primeiro nome" className="rounded-xl" />
+                    <Input id="firstName" placeholder="Primeiro nome" className="rounded-xl" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Apelido</Label>
-                    <Input id="lastName" placeholder="Apelido" className="rounded-xl" />
+                    <Input id="lastName" placeholder="Apelido" className="rounded-xl" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="email@exemplo.com" className="rounded-xl" />
+                  <Input id="email" type="email" placeholder="email@exemplo.com" className="rounded-xl" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone</Label>
-                  <Input id="phone" type="tel" placeholder="+244 9XX XXX XXX" className="rounded-xl" />
+                  <Input id="phone" type="tel" placeholder="+244 9XX XXX XXX" className="rounded-xl" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="course">Curso Pretendido</Label>
-                  <Select>
+                  <Select value={form.course} onValueChange={(v) => setForm({ ...form, course: v })}>
                     <SelectTrigger className="rounded-xl">
                       <SelectValue placeholder="Seleccione um curso" />
                     </SelectTrigger>
@@ -230,11 +226,12 @@ const Admissions = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Mensagem (opcional)</Label>
-                  <Textarea id="message" placeholder="Informações adicionais..." className="rounded-xl" />
+                  <Textarea id="message" placeholder="Informações adicionais..." className="rounded-xl" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
                 </div>
 
-                <Button variant="hero" size="lg" className="w-full">
-                  Submeter Candidatura
+                <Button variant="hero" size="lg" className="w-full" type="submit" disabled={loading}>
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {loading ? "A submeter..." : "Submeter Candidatura"}
                 </Button>
               </form>
             </Card>
@@ -242,25 +239,14 @@ const Admissions = () => {
         </div>
 
         {/* FAQ */}
-        <motion.section
-          className="mt-16"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          custom={4}
-        >
+        <motion.section className="mt-16" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={4}>
           <h2 className="mb-6 text-2xl font-bold text-foreground">Perguntas Frequentes</h2>
           <Card className="rounded-2xl border-border/50 p-6">
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, i) => (
                 <AccordionItem key={i} value={`faq-${i}`}>
-                  <AccordionTrigger className="text-left text-sm font-medium text-foreground hover:text-accent">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-muted-foreground">
-                    {faq.a}
-                  </AccordionContent>
+                  <AccordionTrigger className="text-left text-sm font-medium text-foreground hover:text-accent">{faq.q}</AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground">{faq.a}</AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>

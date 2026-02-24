@@ -1,8 +1,12 @@
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield } from "lucide-react";
+import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import heroCampus from "@/assets/hero-campus.jpg";
+import campusNight from "@/assets/campus-night.webp";
+import campusEntrance from "@/assets/campus-entrance.jpeg";
+import campusLab from "@/assets/campus-lab.jpeg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -12,6 +16,13 @@ const fadeUp = {
     transition: { duration: 0.6, delay: i * 0.1 },
   }),
 };
+
+const heroImages = [
+  { src: heroCampus, alt: "Campus do IPS" },
+  { src: campusNight, alt: "Campus do IPS à noite" },
+  { src: campusEntrance, alt: "Entrada do campus" },
+  { src: campusLab, alt: "Laboratório do IPS" },
+];
 
 const stats = [
   { icon: BookOpen, value: "30+", label: "Cursos" },
@@ -28,17 +39,56 @@ const quickLinks = [
 ];
 
 const HeroSection = () => {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const prev = () => setCurrent((c) => (c - 1 + heroImages.length) % heroImages.length);
+  const next = () => setCurrent((c) => (c + 1) % heroImages.length);
+
   return (
     <section className="relative overflow-hidden">
-      {/* Hero Image */}
+      {/* Hero Image Carousel */}
       <div className="relative h-[320px] sm:h-[400px] md:h-[480px]">
-        <img
-          src={heroCampus}
-          alt="Campus do Instituto Politécnico do Sumbe"
-          className="h-full w-full object-cover"
-          loading="eager"
-        />
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={current}
+            src={heroImages[current].src}
+            alt={heroImages[current].alt}
+            className="absolute inset-0 h-full w-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            loading="eager"
+          />
+        </AnimatePresence>
         <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/50 to-background" />
+
+        {/* Carousel controls */}
+        <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/30 backdrop-blur-sm text-white hover:bg-background/50 transition-colors">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/30 backdrop-blur-sm text-white hover:bg-background/50 transition-colors">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        {/* Dots */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+          {heroImages.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`h-2 rounded-full transition-all ${i === current ? "w-6 bg-accent" : "w-2 bg-white/50"}`}
+            />
+          ))}
+        </div>
+
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4">
             <motion.h1
@@ -63,7 +113,6 @@ const HeroSection = () => {
 
         <div className="container mx-auto">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            {/* Left */}
             <div>
               <motion.p
                 className="max-w-lg text-lg text-muted-foreground leading-relaxed"
@@ -84,15 +133,10 @@ const HeroSection = () => {
                 viewport={{ once: true }}
                 custom={2}
               >
-                <Button variant="hero" size="lg">
-                  Explorar cursos
-                </Button>
-                <Button variant="heroOutline" size="lg">
-                  Planear uma visita
-                </Button>
+                <Button variant="hero" size="lg">Explorar cursos</Button>
+                <Button variant="heroOutline" size="lg">Planear uma visita</Button>
               </motion.div>
 
-              {/* Stats */}
               <motion.div
                 className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4"
                 variants={fadeUp}
@@ -102,10 +146,7 @@ const HeroSection = () => {
                 custom={3}
               >
                 {stats.map((stat) => (
-                  <Card
-                    key={stat.label}
-                    className="flex flex-col items-center gap-1 rounded-2xl border-border/50 bg-card/60 p-4 backdrop-blur-sm"
-                  >
+                  <Card key={stat.label} className="flex flex-col items-center gap-1 rounded-2xl border-border/50 bg-card/60 p-4 backdrop-blur-sm">
                     <stat.icon className="h-5 w-5 text-accent" />
                     <span className="text-2xl font-bold text-foreground">{stat.value}</span>
                     <span className="text-xs text-muted-foreground">{stat.label}</span>
@@ -114,14 +155,7 @@ const HeroSection = () => {
               </motion.div>
             </div>
 
-            {/* Right - Quick Links */}
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={4}
-            >
+            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={4}>
               <Card className="rounded-2xl border-border/50 bg-card/80 p-6 backdrop-blur-sm">
                 <h3 className="mb-4 text-lg font-semibold text-foreground">Links Rápidos</h3>
                 <div className="grid gap-3 sm:grid-cols-2">
