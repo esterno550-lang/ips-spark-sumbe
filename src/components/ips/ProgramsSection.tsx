@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Search, GraduationCap } from "lucide-react";
+import { Search, GraduationCap, Zap, Leaf, Snowflake } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,16 +13,48 @@ import {
 } from "@/components/ui/select";
 
 const programs = [
-  { name: "Mecânica Industrial", area: "Técnico", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Informática", area: "Tecnologia", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Construção Civil", area: "Técnico", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Agropecuária", area: "Ciências Agrárias", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Gestão e Administração", area: "Gestão", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Contabilidade", area: "Gestão", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Electrotecnia", area: "Técnico", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Enfermagem", area: "Saúde", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Análises Clínicas", area: "Saúde", level: "Ensino Médio Técnico", duration: "4 anos" },
-  { name: "Electrónica", area: "Tecnologia", level: "Ensino Médio Técnico", duration: "4 anos" },
+  {
+    name: "Energia e Instalações Eléctricas",
+    area: "Electricidade",
+    level: "Ensino Médio Técnico",
+    duration: "4 anos",
+    icon: Zap,
+    popular: true,
+    advantages: [
+      "Curso mais concorrido do instituto",
+      "Alta empregabilidade no sector energético angolano",
+      "Formação prática em instalações industriais e domésticas",
+      "Preparação para certificação profissional",
+    ],
+  },
+  {
+    name: "Energias Renováveis",
+    area: "Energia",
+    level: "Ensino Médio Técnico",
+    duration: "4 anos",
+    icon: Leaf,
+    popular: false,
+    advantages: [
+      "Sector em rápido crescimento em Angola e no mundo",
+      "Formação em energia solar, eólica e biomassa",
+      "Oportunidades de emprego em projectos sustentáveis",
+      "Contribuição directa para o desenvolvimento sustentável",
+    ],
+  },
+  {
+    name: "Frio e Climatização",
+    area: "Refrigeração",
+    level: "Ensino Médio Técnico",
+    duration: "4 anos",
+    icon: Snowflake,
+    popular: false,
+    advantages: [
+      "Competências técnicas altamente procuradas",
+      "Formação em sistemas AVAC e refrigeração industrial",
+      "Mercado de trabalho em expansão contínua",
+      "Possibilidade de trabalho autónomo e empreendedorismo",
+    ],
+  },
 ];
 
 const areas = [...new Set(programs.map((p) => p.area))];
@@ -58,8 +90,8 @@ const ProgramsSection = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl font-bold text-foreground">Encontrar Programas</h2>
-          <p className="mt-2 text-muted-foreground">Explore os nossos cursos e áreas de formação</p>
+          <h2 className="text-3xl font-bold text-foreground">Nossos Cursos</h2>
+          <p className="mt-2 text-muted-foreground">Explore os nossos cursos técnicos de formação profissional</p>
         </motion.div>
 
         {/* Filters */}
@@ -73,7 +105,7 @@ const ProgramsSection = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Pesquisar programas..."
+              placeholder="Pesquisar cursos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="rounded-xl pl-10"
@@ -93,7 +125,7 @@ const ProgramsSection = () => {
         </motion.div>
 
         {/* Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
           {filtered.map((program, i) => (
             <motion.div
               key={program.name}
@@ -103,23 +135,42 @@ const ProgramsSection = () => {
               viewport={{ once: true }}
               custom={i}
             >
-              <Card className="group flex h-full flex-col justify-between rounded-2xl border-border/50 p-5 transition-all hover:border-accent/30 hover:shadow-lg">
+              <Card className="group flex h-full flex-col rounded-2xl border-border/50 p-6 transition-all hover:border-accent/30 hover:shadow-lg">
                 <div>
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                    <GraduationCap className="h-5 w-5 text-accent" />
+                  <div className="mb-3 flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
+                      <program.icon className="h-6 w-6 text-accent" />
+                    </div>
+                    {program.popular && (
+                      <Badge className="rounded-lg bg-accent text-accent-foreground text-xs">
+                        Mais concorrido
+                      </Badge>
+                    )}
                   </div>
                   <h3 className="text-lg font-semibold text-foreground group-hover:text-accent transition-colors">
                     {program.name}
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{program.duration}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Badge variant="secondary" className="rounded-lg text-xs">
+                      {program.area}
+                    </Badge>
+                    <Badge variant="outline" className="rounded-lg text-xs">
+                      {program.duration}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <Badge variant="secondary" className="rounded-lg text-xs">
-                    {program.area}
-                  </Badge>
-                  <Badge variant="outline" className="rounded-lg text-xs">
-                    {program.level}
-                  </Badge>
+
+                {/* Advantages */}
+                <div className="mt-5 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Vantagens</p>
+                  <ul className="space-y-1.5">
+                    {program.advantages.map((adv) => (
+                      <li key={adv} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <GraduationCap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+                        {adv}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </Card>
             </motion.div>
@@ -128,7 +179,7 @@ const ProgramsSection = () => {
 
         {filtered.length === 0 && (
           <p className="mt-8 text-center text-muted-foreground">
-            Nenhum programa encontrado. Tente ajustar a pesquisa.
+            Nenhum curso encontrado. Tente ajustar a pesquisa.
           </p>
         )}
       </div>
