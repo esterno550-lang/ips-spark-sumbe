@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield, ChevronLeft, ChevronRight } from "lucide-react";
-import heroCampus from "@/assets/hero-campus.jpg";
 import campusNight from "@/assets/campus-night.webp";
 import campusEntrance from "@/assets/campus-entrance.jpeg";
 import campusLab from "@/assets/campus-lab.jpeg";
@@ -18,9 +17,8 @@ const fadeUp = {
 };
 
 const heroImages = [
-  { src: heroCampus, alt: "Campus do IPS" },
+  { src: campusEntrance, alt: "Entrada do campus do IPS" },
   { src: campusNight, alt: "Campus do IPS à noite" },
-  { src: campusEntrance, alt: "Entrada do campus" },
   { src: campusLab, alt: "Laboratório do IPS" },
 ];
 

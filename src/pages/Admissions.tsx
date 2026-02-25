@@ -24,6 +24,18 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/ips/Header";
 import Footer from "@/components/ips/Footer";
+import { z } from "zod";
+
+const admissionSchema = z.object({
+  firstName: z.string().trim().min(2, "O nome deve ter pelo menos 2 caracteres").max(50, "O nome não pode exceder 50 caracteres"),
+  lastName: z.string().trim().min(2, "O apelido deve ter pelo menos 2 caracteres").max(50, "O apelido não pode exceder 50 caracteres"),
+  email: z.string().trim().email("Endereço de email inválido").max(255, "Email demasiado longo"),
+  phone: z.string().trim().min(9, "O número de telefone deve ter pelo menos 9 dígitos").max(20, "Número de telefone inválido").regex(/^[+\d\s()-]+$/, "Formato de telefone inválido"),
+  course: z.string().min(1, "Seleccione um curso"),
+  message: z.string().max(500, "A mensagem não pode exceder 500 caracteres").optional().or(z.literal("")),
+});
+
+type FormErrors = Partial<Record<keyof z.infer<typeof admissionSchema>, string>>;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -66,9 +78,16 @@ const faqs = [
   { q: "Qual é a duração dos cursos?", a: "Todos os cursos técnicos médios têm a duração de 4 anos lectivos." },
 ];
 
+const courses = [
+  { value: "energia-eletrica", label: "Energia e Instalações Eléctricas" },
+  { value: "energias-renovaveis", label: "Energias Renováveis" },
+  { value: "frio-climatizacao", label: "Frio e Climatização" },
+];
+
 const Admissions = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -80,19 +99,28 @@ const Admissions = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.firstName || !form.lastName || !form.email || !form.phone || !form.course) {
-      toast({ title: "Erro", description: "Por favor preencha todos os campos obrigatórios.", variant: "destructive" });
+    setErrors({});
+
+    const result = admissionSchema.safeParse(form);
+    if (!result.success) {
+      const fieldErrors: FormErrors = {};
+      result.error.errors.forEach((err) => {
+        const field = err.path[0] as keyof FormErrors;
+        if (!fieldErrors[field]) fieldErrors[field] = err.message;
+      });
+      setErrors(fieldErrors);
+      toast({ title: "Erro de validação", description: "Corrija os campos assinalados.", variant: "destructive" });
       return;
     }
 
     setLoading(true);
     const { error } = await supabase.from("admissions").insert({
-      first_name: form.firstName,
-      last_name: form.lastName,
-      email: form.email,
-      phone: form.phone,
-      course: form.course,
-      message: form.message || null,
+      first_name: result.data.firstName,
+      last_name: result.data.lastName,
+      email: result.data.email,
+      phone: result.data.phone,
+      course: result.data.course,
+      message: result.data.message || null,
     });
     setLoading(false);
 
@@ -101,6 +129,14 @@ const Admissions = () => {
     } else {
       toast({ title: "Candidatura submetida!", description: "Entraremos em contacto em breve." });
       setForm({ firstName: "", lastName: "", email: "", phone: "", course: "", message: "" });
+      setErrors({});
+    }
+  };
+
+  const updateField = (field: string, value: string) => {
+    setForm({ ...form, [field]: value });
+    if (errors[field as keyof FormErrors]) {
+      setErrors({ ...errors, [field]: undefined });
     }
   };
 
@@ -184,49 +220,48 @@ const Admissions = () => {
               <form className="space-y-5" onSubmit={handleSubmit}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">Nome</Label>
-                    <Input id="firstName" placeholder="Primeiro nome" className="rounded-xl" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
+                    <Label htmlFor="firstName">Nome *</Label>
+                    <Input id="firstName" placeholder="Primeiro nome" className={`rounded-xl ${errors.firstName ? "border-destructive" : ""}`} value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} />
+                    {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Apelido</Label>
-                    <Input id="lastName" placeholder="Apelido" className="rounded-xl" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+                    <Label htmlFor="lastName">Apelido *</Label>
+                    <Input id="lastName" placeholder="Apelido" className={`rounded-xl ${errors.lastName ? "border-destructive" : ""}`} value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} />
+                    {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="email@exemplo.com" className="rounded-xl" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  <Label htmlFor="email">Email *</Label>
+                  <Input id="email" type="email" placeholder="email@exemplo.com" className={`rounded-xl ${errors.email ? "border-destructive" : ""}`} value={form.email} onChange={(e) => updateField("email", e.target.value)} />
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input id="phone" type="tel" placeholder="+244 9XX XXX XXX" className="rounded-xl" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  <Label htmlFor="phone">Telefone *</Label>
+                  <Input id="phone" type="tel" placeholder="+244 9XX XXX XXX" className={`rounded-xl ${errors.phone ? "border-destructive" : ""}`} value={form.phone} onChange={(e) => updateField("phone", e.target.value)} />
+                  {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="course">Curso Pretendido</Label>
-                  <Select value={form.course} onValueChange={(v) => setForm({ ...form, course: v })}>
-                    <SelectTrigger className="rounded-xl">
+                  <Label htmlFor="course">Curso Pretendido *</Label>
+                  <Select value={form.course} onValueChange={(v) => updateField("course", v)}>
+                    <SelectTrigger className={`rounded-xl ${errors.course ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Seleccione um curso" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      <SelectItem value="mecanica">Mecânica Industrial</SelectItem>
-                      <SelectItem value="informatica">Informática</SelectItem>
-                      <SelectItem value="civil">Construção Civil</SelectItem>
-                      <SelectItem value="agro">Agropecuária</SelectItem>
-                      <SelectItem value="gestao">Gestão e Administração</SelectItem>
-                      <SelectItem value="contabilidade">Contabilidade</SelectItem>
-                      <SelectItem value="electrotecnia">Electrotecnia</SelectItem>
-                      <SelectItem value="enfermagem">Enfermagem</SelectItem>
-                      <SelectItem value="analises">Análises Clínicas</SelectItem>
-                      <SelectItem value="electronica">Electrónica</SelectItem>
+                      {courses.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  {errors.course && <p className="text-xs text-destructive">{errors.course}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Mensagem (opcional)</Label>
-                  <Textarea id="message" placeholder="Informações adicionais..." className="rounded-xl" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+                  <Textarea id="message" placeholder="Informações adicionais..." className={`rounded-xl ${errors.message ? "border-destructive" : ""}`} value={form.message} onChange={(e) => updateField("message", e.target.value)} />
+                  {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
                 </div>
 
                 <Button variant="hero" size="lg" className="w-full" type="submit" disabled={loading}>
