@@ -8,6 +8,10 @@ import campusNight from "@/assets/campus-night.webp";
 import campusEntrance from "@/assets/campus-entrance.jpeg";
 import campusLab from "@/assets/campus-lab.jpeg";
 import directorPhoto from "@/assets/director-maria-chilumbo.jpg";
+import viceAcademicoPhoto from "@/assets/director-vice-academico.jpg";
+import viceAdminPhoto from "@/assets/director-vice-admin.jpg";
+import pedagogicoPhoto from "@/assets/director-pedagogico.jpg";
+import secretarioPhoto from "@/assets/director-secretario.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -27,9 +31,33 @@ const values = [
 const leadership = [
   {
     name: "Maria Chilumbo",
-    role: "Directora do Instituto",
+    role: "Directora Geral",
     photo: directorPhoto,
-    bio: "Maria Chilumbo é a atual Directora do Instituto Politécnico do Sumbe, liderando a instituição com visão estratégica e compromisso com a formação técnica de qualidade.",
+    bio: "Lidera o Instituto com visão estratégica e compromisso com a formação técnica de qualidade, representando a instituição perante entidades nacionais e internacionais.",
+  },
+  {
+    name: "António Sebastião",
+    role: "Sub-Director Académico",
+    photo: viceAcademicoPhoto,
+    bio: "Responsável pela coordenação dos programas académicos, gestão curricular e supervisão da qualidade pedagógica dos cursos técnicos.",
+  },
+  {
+    name: "Teresa Domingos",
+    role: "Sub-Directora Administrativa",
+    photo: viceAdminPhoto,
+    bio: "Gere os recursos humanos, financeiros e patrimoniais do instituto, garantindo o funcionamento eficiente de todos os serviços de apoio.",
+  },
+  {
+    name: "José Manuel Ferreira",
+    role: "Director Pedagógico",
+    photo: pedagogicoPhoto,
+    bio: "Coordena as actividades pedagógicas, formação de docentes e implementação de metodologias de ensino inovadoras.",
+  },
+  {
+    name: "Carlos Eduardo Pinto",
+    role: "Secretário Geral",
+    photo: secretarioPhoto,
+    bio: "Responsável pela gestão documental, arquivo institucional e coordenação dos processos administrativos e de matrículas.",
   },
 ];
 
@@ -116,16 +144,18 @@ const About = () => {
           {/* Leadership */}
           <motion.section className="mb-16" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={4}>
             <h2 className="mb-8 text-2xl font-bold text-foreground text-center">Equipa de Direcção</h2>
-            <div className="flex justify-center">
-              {leadership.map((person) => (
-                <Card key={person.name} className="max-w-sm rounded-2xl border-border/50 overflow-hidden transition-all hover:shadow-lg">
-                  <img src={person.photo} alt={person.name} className="h-72 w-full object-cover" />
-                  <div className="p-6">
-                    <h3 className="text-lg font-bold text-foreground">{person.name}</h3>
-                    <Badge variant="secondary" className="mt-1 rounded-lg">{person.role}</Badge>
-                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{person.bio}</p>
-                  </div>
-                </Card>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {leadership.map((person, i) => (
+                <motion.div key={person.name} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}>
+                  <Card className={`rounded-2xl border-border/50 overflow-hidden transition-all hover:shadow-lg ${i === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}>
+                    <img src={person.photo} alt={person.name} className="h-64 w-full object-cover" />
+                    <div className="p-5">
+                      <h3 className="text-lg font-bold text-foreground">{person.name}</h3>
+                      <Badge variant="secondary" className="mt-1 rounded-lg">{person.role}</Badge>
+                      <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{person.bio}</p>
+                    </div>
+                  </Card>
+                </motion.div>
               ))}
             </div>
           </motion.section>

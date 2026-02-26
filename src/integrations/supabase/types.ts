@@ -19,31 +19,40 @@ export type Database = {
           course: string
           created_at: string
           email: string
+          first_cycle_grade: number | null
           first_name: string
           id: string
           last_name: string
           message: string | null
           phone: string
+          secondary_course: string | null
+          status: string
         }
         Insert: {
           course: string
           created_at?: string
           email: string
+          first_cycle_grade?: number | null
           first_name: string
           id?: string
           last_name: string
           message?: string | null
           phone: string
+          secondary_course?: string | null
+          status?: string
         }
         Update: {
           course?: string
           created_at?: string
           email?: string
+          first_cycle_grade?: number | null
           first_name?: string
           id?: string
           last_name?: string
           message?: string | null
           phone?: string
+          secondary_course?: string | null
+          status?: string
         }
         Relationships: []
       }
