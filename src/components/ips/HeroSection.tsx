@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import campusNight from "@/assets/campus-night.webp";
 import campusEntrance from "@/assets/campus-entrance.jpeg";
 import campusLab from "@/assets/campus-lab.jpeg";
@@ -23,7 +24,7 @@ const heroImages = [
 ];
 
 const stats = [
-  { icon: BookOpen, value: "30+", label: "Cursos" },
+  { icon: BookOpen, value: "3", label: "Cursos" },
   { icon: Users, value: "200+", label: "Docentes" },
   { icon: GraduationCap, value: "3,000+", label: "Estudantes" },
   { icon: Award, value: "20+", label: "Parcerias" },
@@ -36,8 +37,13 @@ const quickLinks = [
   { icon: MapPin, label: "Visitar o campus" },
 ];
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  onNavigate?: (tab: string) => void;
+}
+
+const HeroSection = ({ onNavigate }: HeroSectionProps) => {
   const [current, setCurrent] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -131,8 +137,12 @@ const HeroSection = () => {
                 viewport={{ once: true }}
                 custom={2}
               >
-                <Button variant="hero" size="lg">Explorar cursos</Button>
-                <Button variant="heroOutline" size="lg">Planear uma visita</Button>
+                <Button variant="hero" size="lg" onClick={() => onNavigate?.("programs")}>
+                  Explorar cursos
+                </Button>
+                <Button variant="heroOutline" size="lg" onClick={() => onNavigate?.("visit")}>
+                  Planear uma visita
+                </Button>
               </motion.div>
 
               <motion.div
