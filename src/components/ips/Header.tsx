@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Search, Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Menu, X, ChevronDown, Sun, Moon, LogIn, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,7 +8,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 
 const navMenus = [
   { label: "Cursos", items: ["Cursos Técnicos", "Calendário Académico", "Biblioteca"] },
@@ -18,9 +21,12 @@ const navMenus = [
 ];
 
 const Header = () => {
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
+  const [session, setSession] = useState<Session | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (dark) {
@@ -29,6 +35,51 @@ const Header = () => {
       document.documentElement.classList.remove("dark");
     }
   }, [dark]);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        supabase.from("user_roles").select("role").eq("user_id", session.user.id).then(({ data }) => {
+          if (data && data.length > 0) {
+            const roles = data.map((r) => r.role);
+            if (roles.includes("admin")) setUserRole("admin");
+            else if (roles.includes("teacher")) setUserRole("teacher");
+            else setUserRole("user");
+          } else {
+            setUserRole("user");
+          }
+        });
+      } else {
+        setUserRole(null);
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        supabase.from("user_roles").select("role").eq("user_id", session.user.id).then(({ data }) => {
+          if (data && data.length > 0) {
+            const roles = data.map((r) => r.role);
+            if (roles.includes("admin")) setUserRole("admin");
+            else if (roles.includes("teacher")) setUserRole("teacher");
+            else setUserRole("user");
+          } else {
+            setUserRole("user");
+          }
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUserRole(null);
+    navigate("/");
+  };
 
   const renderMenuItem = (item: string | { label: string; link: string }) => {
     if (typeof item === "string") {
@@ -86,6 +137,42 @@ const Header = () => {
           <Button variant="ghost" size="icon" onClick={() => setDark(!dark)} aria-label="Alternar tema">
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
+
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline text-xs max-w-[120px] truncate">
+                    {session.user.email}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-xl">
+                <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
+                  {userRole === "admin" ? "Administrador" : userRole === "teacher" ? "Professor" : "Utilizador"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {(userRole === "admin" || userRole === "teacher") && (
+                  <DropdownMenuItem className="rounded-lg cursor-pointer" asChild>
+                    <Link to="/admin">Painel Admin</Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem className="rounded-lg cursor-pointer text-destructive" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Terminar sessão
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Entrar</span>
+              </Button>
+            </Link>
+          )}
+
           <Link to="/admissions">
             <Button variant="heroPrimary" size="sm" className="hidden sm:flex">
               Admissões
@@ -121,7 +208,30 @@ const Header = () => {
               </div>
             ))}
             <Input placeholder="Pesquisar..." className="mt-2 rounded-xl" />
-            <Link to="/admissions">
+
+            {session ? (
+              <div className="mt-2 space-y-2">
+                <p className="text-xs text-muted-foreground px-3">{session.user.email}</p>
+                {(userRole === "admin" || userRole === "teacher") && (
+                  <Link to="/admin" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-xl">Painel Admin</Button>
+                  </Link>
+                )}
+                <Button variant="destructive" className="w-full rounded-xl" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Terminar sessão
+                </Button>
+              </div>
+            ) : (
+              <Link to="/auth" onClick={() => setMobileOpen(false)}>
+                <Button variant="hero" className="mt-2 w-full">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Entrar / Registar
+                </Button>
+              </Link>
+            )}
+
+            <Link to="/admissions" onClick={() => setMobileOpen(false)}>
               <Button variant="heroPrimary" className="mt-2 w-full">Admissões</Button>
             </Link>
           </div>

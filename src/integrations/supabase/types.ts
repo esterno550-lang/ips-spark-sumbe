@@ -56,6 +56,108 @@ export type Database = {
         }
         Relationships: []
       }
+      campus_photos: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          storage_path: string
+          title: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          storage_path: string
+          title: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          storage_path?: string
+          title?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      campus_visits: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          num_visitors: number
+          status: string
+          visit_date: string
+          visitor_email: string
+          visitor_name: string
+          visitor_phone: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          num_visitors?: number
+          status?: string
+          visit_date: string
+          visitor_email: string
+          visitor_name: string
+          visitor_phone: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          num_visitors?: number
+          status?: string
+          visit_date?: string
+          visitor_email?: string
+          visitor_name?: string
+          visitor_phone?: string
+        }
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          advantages: string[] | null
+          description: string | null
+          duration_years: number
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          advantages?: string[] | null
+          description?: string | null
+          duration_years?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          advantages?: string[] | null
+          description?: string | null
+          duration_years?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -80,6 +182,33 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          content: string | null
+          id: string
+          section_key: string
+          title: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: string | null
+          id?: string
+          section_key: string
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string | null
+          id?: string
+          section_key?: string
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -115,7 +244,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "teacher"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -243,7 +372,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "teacher"],
     },
   },
 } as const

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CalendarDays,
   Clock,
@@ -21,11 +22,21 @@ import {
   Mail,
   CheckCircle,
   Loader2,
+  Image,
+  Map,
+  Building,
+  FlaskConical,
+  BookOpen,
+  Dumbbell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import campusEntrance from "@/assets/campus-entrance.jpeg";
+import campusLab from "@/assets/campus-lab.jpeg";
+import campusNight from "@/assets/campus-night.webp";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -74,11 +85,27 @@ const contacts = [
   { icon: MapPin, label: "Morada", value: "Campus do IPS, Sumbe, Cuanza Sul" },
 ];
 
+const campusLocations = [
+  { id: "entrance", label: "Entrada Principal", icon: Building, x: 50, y: 85, color: "bg-accent" },
+  { id: "labs", label: "Laboratórios", icon: FlaskConical, x: 30, y: 45, color: "bg-primary" },
+  { id: "library", label: "Biblioteca", icon: BookOpen, x: 70, y: 35, color: "bg-secondary" },
+  { id: "sports", label: "Campo Desportivo", icon: Dumbbell, x: 80, y: 65, color: "bg-accent" },
+  { id: "admin", label: "Edifício Admin.", icon: Building, x: 20, y: 70, color: "bg-primary" },
+];
+
+const defaultGallery = [
+  { src: campusEntrance, title: "Entrada do Campus", category: "campus" },
+  { src: campusLab, title: "Laboratório de Electricidade", category: "laboratórios" },
+  { src: campusNight, title: "Campus à Noite", category: "campus" },
+];
+
 const VisitSection = () => {
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+  const [galleryPhotos, setGalleryPhotos] = useState<{ src: string; title: string; category: string }[]>(defaultGallery);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -86,6 +113,26 @@ const VisitSection = () => {
     visitors: "1",
     notes: "",
   });
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      const { data } = await supabase
+        .from("campus_photos")
+        .select("title, storage_path, category")
+        .order("created_at", { ascending: false });
+
+      if (data && data.length > 0) {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const uploaded = data.map((p) => ({
+          src: `https://${projectId}.supabase.co/storage/v1/object/public/campus-photos/${p.storage_path}`,
+          title: p.title,
+          category: p.category,
+        }));
+        setGalleryPhotos([...defaultGallery, ...uploaded]);
+      }
+    };
+    fetchPhotos();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,16 +145,29 @@ const VisitSection = () => {
       return;
     }
     setLoading(true);
-    // Simulate submission
-    await new Promise((r) => setTimeout(r, 1000));
+
+    const { error } = await supabase.from("campus_visits").insert({
+      visitor_name: form.name,
+      visitor_email: form.email,
+      visitor_phone: form.phone,
+      visit_date: format(date, "yyyy-MM-dd"),
+      num_visitors: parseInt(form.visitors) || 1,
+      notes: form.notes || null,
+    });
+
     setLoading(false);
-    setSubmitted(true);
-    toast({ title: "Visita agendada!", description: `A sua visita está marcada para ${format(date, "d 'de' MMMM 'de' yyyy", { locale: pt })}.` });
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível agendar. Tente novamente.", variant: "destructive" });
+    } else {
+      setSubmitted(true);
+      toast({ title: "Visita agendada!", description: `A sua visita está marcada para ${format(date, "d 'de' MMMM 'de' yyyy", { locale: pt })}.` });
+    }
   };
 
   const isWeekday = (d: Date) => {
     const day = d.getDay();
-    return day !== 0 && day !== 1; // Allow Tuesday-Saturday
+    return day !== 0 && day !== 1;
   };
 
   return (
@@ -132,6 +192,122 @@ const VisitSection = () => {
               <p className="text-xs text-muted-foreground leading-relaxed">{info.description}</p>
             </Card>
           ))}
+        </motion.div>
+
+        {/* Map & Gallery Tabs */}
+        <motion.div className="mb-12" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1.5}>
+          <Tabs defaultValue="map" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="map" className="gap-2 rounded-xl"><Map className="h-4 w-4" /> Mapa do Campus</TabsTrigger>
+              <TabsTrigger value="gallery" className="gap-2 rounded-xl"><Image className="h-4 w-4" /> Galeria de Fotos</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="map">
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* Google Maps */}
+                <Card className="rounded-2xl border-border/50 overflow-hidden">
+                  <div className="p-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-accent" /> Localização
+                    </h3>
+                  </div>
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15702.28!2d13.85!3d-11.2!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTHCsDEyJzAwLjAiUyAxM8KwNTEnMDAuMCJF!5e0!3m2!1spt-PT!2sao!4v1!5m2!1spt-PT!2sao"
+                    className="w-full h-64 border-0"
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Localização do IPS"
+                  />
+                </Card>
+
+                {/* Illustrated Campus Map */}
+                <Card className="rounded-2xl border-border/50 p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <Building className="h-4 w-4 text-accent" /> Mapa Ilustrado do Campus
+                  </h3>
+                  <div className="relative bg-muted/30 rounded-xl h-64 overflow-hidden">
+                    {/* Campus background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-muted/20 to-primary/5 rounded-xl" />
+                    
+                    {/* Campus paths */}
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path d="M 50 85 L 50 50 L 30 45" fill="none" stroke="hsl(var(--border))" strokeWidth="1.5" strokeDasharray="3 2" />
+                      <path d="M 50 50 L 70 35" fill="none" stroke="hsl(var(--border))" strokeWidth="1.5" strokeDasharray="3 2" />
+                      <path d="M 50 50 L 80 65" fill="none" stroke="hsl(var(--border))" strokeWidth="1.5" strokeDasharray="3 2" />
+                      <path d="M 50 50 L 20 70" fill="none" stroke="hsl(var(--border))" strokeWidth="1.5" strokeDasharray="3 2" />
+                    </svg>
+
+                    {/* Location points */}
+                    {campusLocations.map((loc) => (
+                      <button
+                        key={loc.id}
+                        className={cn(
+                          "absolute flex items-center justify-center h-8 w-8 rounded-full shadow-lg transition-all cursor-pointer hover:scale-125 z-10",
+                          selectedLocation === loc.id ? "scale-125 ring-2 ring-accent ring-offset-2 ring-offset-background" : "",
+                          loc.color, "text-primary-foreground"
+                        )}
+                        style={{ left: `${loc.x}%`, top: `${loc.y}%`, transform: "translate(-50%, -50%)" }}
+                        onClick={() => setSelectedLocation(selectedLocation === loc.id ? null : loc.id)}
+                        title={loc.label}
+                      >
+                        <loc.icon className="h-4 w-4" />
+                      </button>
+                    ))}
+
+                    {/* Selected location tooltip */}
+                    {selectedLocation && (
+                      <div className="absolute bottom-2 left-2 right-2 bg-card/95 backdrop-blur-sm rounded-xl p-3 shadow-lg z-20">
+                        <p className="text-sm font-semibold text-foreground">
+                          {campusLocations.find((l) => l.id === selectedLocation)?.label}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {campusLocations.map((loc) => (
+                      <Badge
+                        key={loc.id}
+                        variant={selectedLocation === loc.id ? "default" : "outline"}
+                        className="rounded-lg cursor-pointer text-xs"
+                        onClick={() => setSelectedLocation(selectedLocation === loc.id ? null : loc.id)}
+                      >
+                        <loc.icon className="mr-1 h-3 w-3" />
+                        {loc.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="gallery">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {galleryPhotos.map((photo, i) => (
+                  <motion.div key={i} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i * 0.1}>
+                    <Card className="rounded-2xl border-border/50 overflow-hidden group transition-all hover:shadow-lg">
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={photo.src}
+                          alt={photo.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Badge className="absolute top-3 right-3 rounded-lg text-xs" variant="secondary">
+                          {photo.category}
+                        </Badge>
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-foreground">{photo.title}</p>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </motion.div>
 
         <div className="grid gap-12 lg:grid-cols-2">
