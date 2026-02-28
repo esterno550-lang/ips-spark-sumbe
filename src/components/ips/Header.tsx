@@ -153,9 +153,19 @@ const Header = () => {
                   {userRole === "admin" ? "Administrador" : userRole === "teacher" ? "Professor" : "Utilizador"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {(userRole === "admin" || userRole === "teacher") && (
+                {userRole === "admin" && (
                   <DropdownMenuItem className="rounded-lg cursor-pointer" asChild>
                     <Link to="/admin">Painel Admin</Link>
+                  </DropdownMenuItem>
+                )}
+                {userRole === "teacher" && (
+                  <DropdownMenuItem className="rounded-lg cursor-pointer" asChild>
+                    <Link to="/teacher">Painel Professor</Link>
+                  </DropdownMenuItem>
+                )}
+                {userRole === "user" && (
+                  <DropdownMenuItem className="rounded-lg cursor-pointer" asChild>
+                    <Link to="/student">Meu Painel</Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem className="rounded-lg cursor-pointer text-destructive" onClick={handleLogout}>
@@ -212,9 +222,19 @@ const Header = () => {
             {session ? (
               <div className="mt-2 space-y-2">
                 <p className="text-xs text-muted-foreground px-3">{session.user.email}</p>
-                {(userRole === "admin" || userRole === "teacher") && (
+                {userRole === "admin" && (
                   <Link to="/admin" onClick={() => setMobileOpen(false)}>
                     <Button variant="outline" className="w-full rounded-xl">Painel Admin</Button>
+                  </Link>
+                )}
+                {userRole === "teacher" && (
+                  <Link to="/teacher" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-xl">Painel Professor</Button>
+                  </Link>
+                )}
+                {userRole === "user" && (
+                  <Link to="/student" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="w-full rounded-xl">Meu Painel</Button>
                   </Link>
                 )}
                 <Button variant="destructive" className="w-full rounded-xl" onClick={handleLogout}>
