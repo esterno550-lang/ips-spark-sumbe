@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LogOut, Users, Search, Trash2, Loader2, CheckCircle, XCircle, Clock,
   GraduationCap, Image, FileText, CalendarDays, Upload, Plus, Save, Edit2, X,
+  BookOpen, UserPlus, ClipboardList,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -88,6 +90,37 @@ type CampusPhoto = {
   created_at: string;
 };
 
+type Subject = {
+  id: string;
+  name: string;
+  code: string;
+  course_id: string;
+  teacher_id: string;
+  year: number;
+  semester: number;
+  teacher_name?: string;
+  course_name?: string;
+};
+
+type Enrollment = {
+  id: string;
+  student_id: string;
+  course_id: string;
+  academic_year: string;
+  year_level: number;
+  student_name?: string;
+  course_name?: string;
+};
+
+type ScheduleItem = {
+  id: string;
+  subject_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  room: string;
+};
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -115,6 +148,20 @@ const AdminDashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [photoForm, setPhotoForm] = useState({ title: "", description: "", category: "geral" });
 
+  // Subjects
+  const [subjectsList, setSubjectsList] = useState<Subject[]>([]);
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [teacherProfiles, setTeacherProfiles] = useState<{ user_id: string; display_name: string }[]>([]);
+
+  // Enrollments
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [newEnrollment, setNewEnrollment] = useState({ student_email: "", course_id: "", year_level: 1, academic_year: "2025/2026" });
+  const [enrollDialog, setEnrollDialog] = useState(false);
+
+  // Schedules
+  const [schedulesList, setSchedulesList] = useState<ScheduleItem[]>([]);
+  const [editingSchedule, setEditingSchedule] = useState<ScheduleItem | null>(null);
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -141,18 +188,48 @@ const AdminDashboard = () => {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [admRes, courseRes, contentRes, visitRes, photoRes] = await Promise.all([
+    const [admRes, courseRes, contentRes, visitRes, photoRes, subRes, enrRes, schRes] = await Promise.all([
       supabase.from("admissions").select("*").order("last_name").order("first_name"),
       supabase.from("courses").select("*").order("sort_order"),
       supabase.from("site_content").select("*"),
       supabase.from("campus_visits").select("*").order("visit_date", { ascending: false }),
       supabase.from("campus_photos").select("*").order("created_at", { ascending: false }),
+      supabase.from("subjects").select("*, courses(name)"),
+      supabase.from("enrollments").select("*, courses(name)"),
+      supabase.from("schedules").select("*"),
     ]);
     setAdmissions((admRes.data as Admission[]) || []);
     setCourses((courseRes.data as Course[]) || []);
     setContents((contentRes.data as SiteContent[]) || []);
     setVisits((visitRes.data as CampusVisit[]) || []);
     setPhotos((photoRes.data as CampusPhoto[]) || []);
+
+    // Subjects with teacher names
+    const subs = (subRes.data || []) as any[];
+    const teacherIds = [...new Set(subs.map(s => s.teacher_id))];
+    if (teacherIds.length > 0) {
+      const { data: tProf } = await supabase.from("profiles").select("user_id, display_name").in("user_id", teacherIds);
+      setTeacherProfiles((tProf || []) as any);
+      const tMap: Record<string, string> = {};
+      (tProf || []).forEach((p: any) => { tMap[p.user_id] = p.display_name || "—"; });
+      setSubjectsList(subs.map(s => ({ ...s, teacher_name: tMap[s.teacher_id] || "—", course_name: s.courses?.name || "" })));
+    } else {
+      setSubjectsList(subs.map(s => ({ ...s, course_name: s.courses?.name || "" })));
+    }
+
+    // Enrollments with student names
+    const enrs = (enrRes.data || []) as any[];
+    const studentIds = [...new Set(enrs.map(e => e.student_id))];
+    if (studentIds.length > 0) {
+      const { data: sProf } = await supabase.from("profiles").select("user_id, display_name").in("user_id", studentIds);
+      const sMap: Record<string, string> = {};
+      (sProf || []).forEach((p: any) => { sMap[p.user_id] = p.display_name || "—"; });
+      setEnrollments(enrs.map(e => ({ ...e, student_name: sMap[e.student_id] || "—", course_name: e.courses?.name || "" })));
+    } else {
+      setEnrollments([]);
+    }
+
+    setSchedulesList((schRes.data || []) as ScheduleItem[]);
     setLoading(false);
   }, []);
 
@@ -260,6 +337,87 @@ const AdminDashboard = () => {
     toast({ title: "Foto eliminada" });
   };
 
+  // ---- Subjects ----
+  const saveSubject = async () => {
+    if (!editingSubject) return;
+    const { id, teacher_name, course_name, ...rest } = editingSubject;
+    if (id) {
+      await supabase.from("subjects").update(rest).eq("id", id);
+    } else {
+      await supabase.from("subjects").insert(rest);
+    }
+    setEditingSubject(null);
+    fetchAll();
+    toast({ title: "Disciplina guardada" });
+  };
+
+  const deleteSubject = async (id: string) => {
+    await supabase.from("subjects").delete().eq("id", id);
+    fetchAll();
+    toast({ title: "Disciplina eliminada" });
+  };
+
+  // ---- Enrollments ----
+  const addEnrollment = async () => {
+    // Find user by email via profiles (we need to look up user_id)
+    const { data: allProfiles } = await supabase.from("profiles").select("user_id, display_name");
+    // We need to find user by checking auth - let's use a simpler approach
+    // Look through admissions or direct profile lookup
+    if (!newEnrollment.student_email || !newEnrollment.course_id) {
+      toast({ title: "Preencha todos os campos", variant: "destructive" });
+      return;
+    }
+
+    // We'll use a workaround: search profiles and match
+    const { data: users } = await supabase.rpc("has_role", { _user_id: "00000000-0000-0000-0000-000000000000", _role: "user" as any });
+    
+    // Simple approach: ask admin to enter user_id directly or use email lookup
+    // For now, we store email-based lookup through a query
+    toast({ title: "Para matricular estudantes, utilize o ID do utilizador. Funcionalidade em desenvolvimento.", variant: "destructive" });
+    setEnrollDialog(false);
+  };
+
+  const enrollStudentById = async (studentId: string, courseId: string, yearLevel: number, academicYear: string) => {
+    const { error } = await supabase.from("enrollments").insert({
+      student_id: studentId,
+      course_id: courseId,
+      year_level: yearLevel,
+      academic_year: academicYear,
+    });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Estudante matriculado!" });
+      fetchAll();
+    }
+  };
+
+  const deleteEnrollment = async (id: string) => {
+    await supabase.from("enrollments").delete().eq("id", id);
+    fetchAll();
+    toast({ title: "Matrícula removida" });
+  };
+
+  // ---- Schedules ----
+  const saveSchedule = async () => {
+    if (!editingSchedule) return;
+    const { id, ...rest } = editingSchedule;
+    if (id) {
+      await supabase.from("schedules").update(rest).eq("id", id);
+    } else {
+      await supabase.from("schedules").insert(rest);
+    }
+    setEditingSchedule(null);
+    fetchAll();
+    toast({ title: "Horário guardado" });
+  };
+
+  const deleteSchedule = async (id: string) => {
+    await supabase.from("schedules").delete().eq("id", id);
+    fetchAll();
+    toast({ title: "Horário eliminado" });
+  };
+
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
   if (loading) {
@@ -290,6 +448,9 @@ const AdminDashboard = () => {
           <TabsList className="mb-8 flex-wrap">
             <TabsTrigger value="admissions" className="gap-2 rounded-xl"><Users className="h-4 w-4" />Candidaturas</TabsTrigger>
             <TabsTrigger value="courses" className="gap-2 rounded-xl"><GraduationCap className="h-4 w-4" />Cursos</TabsTrigger>
+            <TabsTrigger value="subjects" className="gap-2 rounded-xl"><BookOpen className="h-4 w-4" />Disciplinas</TabsTrigger>
+            <TabsTrigger value="enrollments" className="gap-2 rounded-xl"><UserPlus className="h-4 w-4" />Matrículas</TabsTrigger>
+            <TabsTrigger value="schedules" className="gap-2 rounded-xl"><ClipboardList className="h-4 w-4" />Horários</TabsTrigger>
             <TabsTrigger value="photos" className="gap-2 rounded-xl"><Image className="h-4 w-4" />Fotos</TabsTrigger>
             <TabsTrigger value="content" className="gap-2 rounded-xl"><FileText className="h-4 w-4" />Conteúdo</TabsTrigger>
             <TabsTrigger value="visits" className="gap-2 rounded-xl"><CalendarDays className="h-4 w-4" />Visitas</TabsTrigger>
@@ -447,6 +608,289 @@ const AdminDashboard = () => {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          {/* SUBJECTS TAB */}
+          <TabsContent value="subjects">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Gestão de Disciplinas</h2>
+              <Button onClick={() => setEditingSubject({ id: "", name: "", code: "", course_id: courses[0]?.id || "", teacher_id: "", year: 1, semester: 1 })} className="rounded-xl">
+                <Plus className="mr-2 h-4 w-4" />Nova Disciplina
+              </Button>
+            </div>
+
+            {editingSubject && (
+              <Card className="rounded-2xl border-border/50 p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">{editingSubject.id ? "Editar" : "Nova"} Disciplina</h3>
+                  <Button variant="ghost" size="icon" onClick={() => setEditingSubject(null)}><X className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Nome</Label>
+                      <Input className="rounded-xl" value={editingSubject.name} onChange={e => setEditingSubject({ ...editingSubject, name: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Código</Label>
+                      <Input className="rounded-xl" placeholder="EX: MAT101" value={editingSubject.code} onChange={e => setEditingSubject({ ...editingSubject, code: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label>Curso</Label>
+                      <Select value={editingSubject.course_id} onValueChange={v => setEditingSubject({ ...editingSubject, course_id: v })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Ano</Label>
+                      <Select value={String(editingSubject.year)} onValueChange={v => setEditingSubject({ ...editingSubject, year: parseInt(v) })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {[1,2,3,4].map(y => <SelectItem key={y} value={String(y)}>{y}º ano</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Semestre</Label>
+                      <Select value={String(editingSubject.semester)} onValueChange={v => setEditingSubject({ ...editingSubject, semester: parseInt(v) })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="1">1º semestre</SelectItem>
+                          <SelectItem value="2">2º semestre</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>ID do Professor (UUID)</Label>
+                    <Input className="rounded-xl" placeholder="UUID do professor" value={editingSubject.teacher_id} onChange={e => setEditingSubject({ ...editingSubject, teacher_id: e.target.value })} />
+                    {teacherProfiles.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {teacherProfiles.map(tp => (
+                          <Button key={tp.user_id} variant="outline" size="sm" className="rounded-lg text-xs" onClick={() => setEditingSubject({ ...editingSubject, teacher_id: tp.user_id })}>
+                            {tp.display_name}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <Button onClick={saveSubject} className="rounded-xl"><Save className="mr-2 h-4 w-4" />Guardar</Button>
+                </div>
+              </Card>
+            )}
+
+            <div className="grid gap-4">
+              {subjectsList.map(s => (
+                <Card key={s.id} className="rounded-2xl border-border/50 p-5 flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="rounded-lg text-xs">{s.code}</Badge>
+                      <h3 className="font-semibold text-foreground">{s.name}</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{s.course_name} • {s.year}º ano • {s.semester}º sem</p>
+                    <p className="text-xs text-muted-foreground mt-1">Prof. {s.teacher_name || "—"}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => setEditingSubject(s)}><Edit2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => deleteSubject(s.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                </Card>
+              ))}
+              {subjectsList.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhuma disciplina criada.</p>}
+            </div>
+          </TabsContent>
+
+          {/* ENROLLMENTS TAB */}
+          <TabsContent value="enrollments">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Matrículas de Estudantes</h2>
+              <Dialog open={enrollDialog} onOpenChange={setEnrollDialog}>
+                <DialogTrigger asChild>
+                  <Button className="rounded-xl"><Plus className="mr-2 h-4 w-4" />Nova Matrícula</Button>
+                </DialogTrigger>
+                <DialogContent className="rounded-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Matricular Estudante</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>ID do Estudante (UUID)</Label>
+                      <Input className="rounded-xl" placeholder="UUID do estudante" value={newEnrollment.student_email} onChange={e => setNewEnrollment({ ...newEnrollment, student_email: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Curso</Label>
+                      <Select value={newEnrollment.course_id} onValueChange={v => setNewEnrollment({ ...newEnrollment, course_id: v })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue placeholder="Seleccione" /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {courses.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-4 grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>Ano</Label>
+                        <Select value={String(newEnrollment.year_level)} onValueChange={v => setNewEnrollment({ ...newEnrollment, year_level: parseInt(v) })}>
+                          <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {[1,2,3,4].map(y => <SelectItem key={y} value={String(y)}>{y}º ano</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Ano Lectivo</Label>
+                        <Input className="rounded-xl" value={newEnrollment.academic_year} onChange={e => setNewEnrollment({ ...newEnrollment, academic_year: e.target.value })} />
+                      </div>
+                    </div>
+                    <Button className="w-full rounded-xl" onClick={async () => {
+                      if (!newEnrollment.student_email || !newEnrollment.course_id) {
+                        toast({ title: "Preencha todos os campos", variant: "destructive" });
+                        return;
+                      }
+                      await enrollStudentById(newEnrollment.student_email, newEnrollment.course_id, newEnrollment.year_level, newEnrollment.academic_year);
+                      setEnrollDialog(false);
+                      setNewEnrollment({ student_email: "", course_id: "", year_level: 1, academic_year: "2025/2026" });
+                    }}>
+                      <Save className="mr-2 h-4 w-4" />Matricular
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Card className="rounded-2xl border-border/50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Estudante</TableHead>
+                      <TableHead>Curso</TableHead>
+                      <TableHead>Ano</TableHead>
+                      <TableHead>Ano Lectivo</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {enrollments.map(e => (
+                      <TableRow key={e.id}>
+                        <TableCell className="font-medium">{e.student_name || e.student_id}</TableCell>
+                        <TableCell>{e.course_name}</TableCell>
+                        <TableCell>{e.year_level}º ano</TableCell>
+                        <TableCell>{e.academic_year}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => deleteEnrollment(e.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {enrollments.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhuma matrícula registada.</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* SCHEDULES TAB */}
+          <TabsContent value="schedules">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Gestão de Horários</h2>
+              <Button onClick={() => setEditingSchedule({ id: "", subject_id: subjectsList[0]?.id || "", day_of_week: 1, start_time: "08:00", end_time: "10:00", room: "Sala A1" })} className="rounded-xl">
+                <Plus className="mr-2 h-4 w-4" />Novo Horário
+              </Button>
+            </div>
+
+            {editingSchedule && (
+              <Card className="rounded-2xl border-border/50 p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">{editingSchedule.id ? "Editar" : "Novo"} Horário</h3>
+                  <Button variant="ghost" size="icon" onClick={() => setEditingSchedule(null)}><X className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Disciplina</Label>
+                      <Select value={editingSchedule.subject_id} onValueChange={v => setEditingSchedule({ ...editingSchedule, subject_id: v })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {subjectsList.map(s => <SelectItem key={s.id} value={s.id}>{s.code} — {s.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Dia da Semana</Label>
+                      <Select value={String(editingSchedule.day_of_week)} onValueChange={v => setEditingSchedule({ ...editingSchedule, day_of_week: parseInt(v) })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {[{v:1,l:"Segunda"},{v:2,l:"Terça"},{v:3,l:"Quarta"},{v:4,l:"Quinta"},{v:5,l:"Sexta"},{v:6,l:"Sábado"}].map(d => (
+                            <SelectItem key={d.v} value={String(d.v)}>{d.l}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label>Hora Início</Label>
+                      <Input type="time" className="rounded-xl" value={editingSchedule.start_time} onChange={e => setEditingSchedule({ ...editingSchedule, start_time: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Hora Fim</Label>
+                      <Input type="time" className="rounded-xl" value={editingSchedule.end_time} onChange={e => setEditingSchedule({ ...editingSchedule, end_time: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Sala</Label>
+                      <Input className="rounded-xl" value={editingSchedule.room} onChange={e => setEditingSchedule({ ...editingSchedule, room: e.target.value })} />
+                    </div>
+                  </div>
+                  <Button onClick={saveSchedule} className="rounded-xl"><Save className="mr-2 h-4 w-4" />Guardar</Button>
+                </div>
+              </Card>
+            )}
+
+            <Card className="rounded-2xl border-border/50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Dia</TableHead>
+                      <TableHead>Hora</TableHead>
+                      <TableHead>Disciplina</TableHead>
+                      <TableHead>Sala</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {schedulesList
+                      .sort((a, b) => a.day_of_week - b.day_of_week || a.start_time.localeCompare(b.start_time))
+                      .map(sch => {
+                        const subj = subjectsList.find(s => s.id === sch.subject_id);
+                        return (
+                          <TableRow key={sch.id}>
+                            <TableCell className="font-medium">{({1:"Segunda",2:"Terça",3:"Quarta",4:"Quinta",5:"Sexta",6:"Sábado"} as any)[sch.day_of_week]}</TableCell>
+                            <TableCell className="text-sm">{sch.start_time.slice(0,5)} — {sch.end_time.slice(0,5)}</TableCell>
+                            <TableCell>{subj ? `${subj.code} — ${subj.name}` : "—"}</TableCell>
+                            <TableCell><Badge variant="outline" className="rounded-lg">{sch.room}</Badge></TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="icon" onClick={() => setEditingSchedule(sch)}><Edit2 className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" onClick={() => deleteSchedule(sch.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    {schedulesList.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum horário configurado.</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
           </TabsContent>
 
           {/* PHOTOS TAB */}

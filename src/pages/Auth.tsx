@@ -31,10 +31,12 @@ const Auth = () => {
           .eq("user_id", session.user.id);
 
         const userRoles = roles?.map((r) => r.role) || [];
-        if (userRoles.includes("admin") || userRoles.includes("teacher")) {
+        if (userRoles.includes("admin")) {
           navigate("/admin");
+        } else if (userRoles.includes("teacher")) {
+          navigate("/teacher");
         } else {
-          navigate("/");
+          navigate("/student");
         }
       }
     };
@@ -67,10 +69,12 @@ const Auth = () => {
         .eq("user_id", session.user.id);
 
       const userRoles = roles?.map((r) => r.role) || [];
-      if (userRoles.includes("admin") || userRoles.includes("teacher")) {
+      if (userRoles.includes("admin")) {
         navigate("/admin");
+      } else if (userRoles.includes("teacher")) {
+        navigate("/teacher");
       } else {
-        navigate("/");
+        navigate("/student");
       }
     }
   };

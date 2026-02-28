@@ -158,6 +158,85 @@ export type Database = {
         }
         Relationships: []
       }
+      enrollments: {
+        Row: {
+          academic_year: string
+          course_id: string
+          enrolled_at: string
+          id: string
+          student_id: string
+          year_level: number
+        }
+        Insert: {
+          academic_year?: string
+          course_id: string
+          enrolled_at?: string
+          id?: string
+          student_id: string
+          year_level?: number
+        }
+        Update: {
+          academic_year?: string
+          course_id?: string
+          enrolled_at?: string
+          id?: string
+          student_id?: string
+          year_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grades: {
+        Row: {
+          academic_year: string
+          created_at: string
+          grade: number | null
+          grade_type: string
+          graded_by: string | null
+          id: string
+          student_id: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: string
+          created_at?: string
+          grade?: number | null
+          grade_type?: string
+          graded_by?: string | null
+          id?: string
+          student_id: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          grade?: number | null
+          grade_type?: string
+          graded_by?: string | null
+          id?: string
+          student_id?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -185,6 +264,44 @@ export type Database = {
         }
         Relationships: []
       }
+      schedules: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          room: string
+          start_time: string
+          subject_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          room?: string
+          start_time: string
+          subject_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          room?: string
+          start_time?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedules_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_content: {
         Row: {
           content: string | null
@@ -211,6 +328,47 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      subjects: {
+        Row: {
+          code: string
+          course_id: string
+          created_at: string
+          id: string
+          name: string
+          semester: number
+          teacher_id: string
+          year: number
+        }
+        Insert: {
+          code: string
+          course_id: string
+          created_at?: string
+          id?: string
+          name: string
+          semester?: number
+          teacher_id: string
+          year?: number
+        }
+        Update: {
+          code?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          semester?: number
+          teacher_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjects_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
