@@ -57,16 +57,23 @@ const timeline = [
   { icon: FileText, title: "Entrega de Documentos", date: "1 Mar — 30 Abr", description: "Submissão de documentos necessários na secretaria." },
   { icon: GraduationCap, title: "Provas de Admissão", date: "15 — 20 de Maio", description: "Exames escritos nas áreas do curso pretendido." },
   { icon: CheckCircle, title: "Publicação de Resultados", date: "10 de Junho", description: "Listas de admitidos publicadas no campus e online." },
-  { icon: Clock, title: "Matrículas", date: "15 — 30 de Junho", description: "Confirmação da matrícula e pagamento da taxa de inscrição." },
+  { icon: Clock, title: "Matrículas", date: "15 — 30 de Junho", description: "Confirmação da matrícula e pagamento da primeira propina." },
 ];
 
 const requirements = [
+  "Certificado de conclusão da 9ª classe",
+  "Declaração de notas da 9ª classe",
   "Cópia do Bilhete de Identidade",
-  "Cópia do Certificado da 9ª classe",
+  "2 fotografias tipo passe",
+  "Atestado médico",
+  "Comprovativo de residência",
 ];
 
 const tuition = [
-  { item: "Taxa de inscrição", value: "2.000 Kz" },
+  { item: "Taxa de inscrição", value: "5.000 Kz" },
+  { item: "Propina mensal", value: "8.000 Kz" },
+  { item: "Taxa de exame", value: "3.000 Kz" },
+  { item: "Seguro escolar (anual)", value: "2.500 Kz" },
 ];
 
 const faqs = [
@@ -271,7 +278,7 @@ const Admissions = () => {
             Junte-se ao <span className="text-accent">IPS</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Comece a sua jornada de formação técnica. A inscrição é gratuita — saiba como candidatar-se e os requisitos.
+            Comece a sua jornada de formação técnica. Saiba como candidatar-se, os requisitos e as propinas.
           </p>
         </motion.div>
 
@@ -370,7 +377,7 @@ const Admissions = () => {
             <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3}>
               <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-foreground">
                 <DollarSign className="h-6 w-6 text-accent" />
-                Taxas
+                Propinas e Taxas
               </h2>
               <Card className="rounded-2xl border-border/50 p-6">
                 <div className="space-y-3">
@@ -382,7 +389,7 @@ const Admissions = () => {
                   ))}
                 </div>
                 <p className="mt-4 text-xs text-muted-foreground">
-                  * O ensino no IPS é público e gratuito. A taxa de inscrição é paga uma única vez.
+                  * Os valores são indicativos e podem ser actualizados no início de cada ano lectivo.
                 </p>
               </Card>
             </motion.section>
