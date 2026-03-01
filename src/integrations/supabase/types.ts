@@ -56,6 +56,48 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          category: string
+          content: string | null
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          start_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          start_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       campus_photos: {
         Row: {
           category: string
@@ -402,7 +444,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user" | "teacher"
+      app_role:
+        | "admin"
+        | "user"
+        | "teacher"
+        | "coordinator"
+        | "director"
+        | "subdirector"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -530,7 +578,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user", "teacher"],
+      app_role: [
+        "admin",
+        "user",
+        "teacher",
+        "coordinator",
+        "director",
+        "subdirector",
+      ],
     },
   },
 } as const

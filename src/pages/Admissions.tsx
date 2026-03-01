@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,7 +19,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, FileText, GraduationCap, CalendarDays, DollarSign, Loader2, Download, Search } from "lucide-react";
+import { CheckCircle, Clock, FileText, GraduationCap, CalendarDays, Loader2, Download, Search, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/ips/Header";
@@ -52,35 +52,16 @@ const fadeUp = {
   }),
 };
 
-const timeline = [
-  { icon: CalendarDays, title: "Abertura de Candidaturas", date: "1 de Março", description: "Início do período de inscrições online e presenciais." },
-  { icon: FileText, title: "Entrega de Documentos", date: "1 Mar — 30 Abr", description: "Submissão de documentos necessários na secretaria." },
-  { icon: GraduationCap, title: "Provas de Admissão", date: "15 — 20 de Maio", description: "Exames escritos nas áreas do curso pretendido." },
-  { icon: CheckCircle, title: "Publicação de Resultados", date: "10 de Junho", description: "Listas de admitidos publicadas no campus e online." },
-  { icon: Clock, title: "Matrículas", date: "15 — 30 de Junho", description: "Confirmação da matrícula e pagamento da primeira propina." },
-];
-
 const requirements = [
-  "Certificado de conclusão da 9ª classe",
-  "Declaração de notas da 9ª classe",
   "Cópia do Bilhete de Identidade",
-  "2 fotografias tipo passe",
-  "Atestado médico",
-  "Comprovativo de residência",
-];
-
-const tuition = [
-  { item: "Taxa de inscrição", value: "5.000 Kz" },
-  { item: "Propina mensal", value: "8.000 Kz" },
-  { item: "Taxa de exame", value: "3.000 Kz" },
-  { item: "Seguro escolar (anual)", value: "2.500 Kz" },
+  "Cópia do Certificado da 9ª classe",
 ];
 
 const faqs = [
   { q: "Qual é a idade mínima para ingressar?", a: "O candidato deve ter concluído a 9ª classe e ter no mínimo 14 anos de idade à data da candidatura." },
   { q: "Posso candidatar-me a mais de um curso?", a: "Sim, pode indicar até duas opções de curso por ordem de preferência no formulário de candidatura." },
   { q: "As aulas são presenciais?", a: "Sim, todos os cursos do IPS são leccionados em regime presencial no campus do Sumbe." },
-  { q: "Existem bolsas de estudo disponíveis?", a: "O IPS oferece bolsas de mérito para os melhores alunos de cada curso, bem como apoio social para estudantes carenciados." },
+  { q: "A instituição é gratuita?", a: "Sim, o IPS é uma instituição pública e gratuita. Apenas é cobrada uma taxa de inscrição única de 2.000 Kz." },
   { q: "Qual é a duração dos cursos?", a: "Todos os cursos técnicos médios têm a duração de 4 anos lectivos." },
 ];
 
@@ -94,6 +75,25 @@ const courseLabels: Record<string, string> = {
   "energia-eletrica": "Energia e Instalações Eléctricas",
   "energias-renovaveis": "Energias Renováveis",
   "frio-climatizacao": "Frio e Climatização",
+};
+
+type Announcement = {
+  id: string;
+  title: string;
+  content: string | null;
+  category: string;
+  start_date: string | null;
+  end_date: string | null;
+  is_active: boolean;
+};
+
+const categoryIcons: Record<string, any> = {
+  candidaturas: CalendarDays,
+  documentos: FileText,
+  provas: GraduationCap,
+  resultados: CheckCircle,
+  matriculas: Clock,
+  geral: Info,
 };
 
 const generatePDF = (data: {
@@ -150,6 +150,7 @@ BT
 0 -20 Td (2a Opcao: ${secondaryLabel}) Tj
 0 -30 Td (---------------------------------------------------) Tj
 0 -25 Td (Estado: PENDENTE) Tj
+0 -20 Td (Taxa de inscricao: 2.000 Kz (unica)) Tj
 0 -30 Td (Este documento serve como comprovativo da sua candidatura.) Tj
 0 -20 Td (Guarde-o para consulta futura.) Tj
 ET
@@ -189,6 +190,7 @@ const Admissions = () => {
   const [statusSearch, setStatusSearch] = useState("");
   const [statusResult, setStatusResult] = useState<any[] | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -199,6 +201,18 @@ const Admissions = () => {
     firstCycleGrade: "",
     message: "",
   });
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      const { data } = await supabase
+        .from("announcements")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order");
+      setAnnouncements((data || []) as Announcement[]);
+    };
+    fetchAnnouncements();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,7 +292,7 @@ const Admissions = () => {
             Junte-se ao <span className="text-accent">IPS</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Comece a sua jornada de formação técnica. Saiba como candidatar-se, os requisitos e as propinas.
+            Comece a sua jornada de formação técnica. O IPS é uma instituição pública e gratuita — apenas é cobrada uma taxa de inscrição única de 2.000 Kz.
           </p>
         </motion.div>
 
@@ -338,29 +352,41 @@ const Admissions = () => {
           </Card>
         </motion.section>
 
-        {/* Timeline */}
-        <motion.section className="mb-16" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1}>
-          <h2 className="mb-8 text-2xl font-bold text-foreground">Calendário de Admissão</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {timeline.map((step, i) => (
-              <motion.div key={step.title} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}>
-                <Card className="flex h-full flex-col items-center gap-3 rounded-2xl border-border/50 p-5 text-center transition-all hover:border-accent/30 hover:shadow-lg">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
-                    <step.icon className="h-6 w-6 text-accent" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-foreground">{step.title}</h3>
-                  <Badge variant="outline" className="rounded-lg text-xs">{step.date}</Badge>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
+        {/* Dynamic Announcements / Timeline */}
+        {announcements.length > 0 && (
+          <motion.section className="mb-16" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1}>
+            <h2 className="mb-8 text-2xl font-bold text-foreground">Calendário e Informações</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {announcements.map((ann, i) => {
+                const IconComp = categoryIcons[ann.category] || Info;
+                const dateStr = ann.start_date && ann.end_date
+                  ? `${new Date(ann.start_date).toLocaleDateString("pt-AO")} — ${new Date(ann.end_date).toLocaleDateString("pt-AO")}`
+                  : ann.start_date
+                  ? new Date(ann.start_date).toLocaleDateString("pt-AO")
+                  : null;
+
+                return (
+                  <motion.div key={ann.id} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}>
+                    <Card className="flex h-full flex-col items-center gap-3 rounded-2xl border-border/50 p-5 text-center transition-all hover:border-accent/30 hover:shadow-lg">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
+                        <IconComp className="h-6 w-6 text-accent" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-foreground">{ann.title}</h3>
+                      {dateStr && <Badge variant="outline" className="rounded-lg text-xs">{dateStr}</Badge>}
+                      {ann.content && <p className="text-xs text-muted-foreground leading-relaxed">{ann.content}</p>}
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
 
         <div className="grid gap-12 lg:grid-cols-2">
           <div className="space-y-10">
+            {/* Requirements */}
             <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={2}>
-              <h2 className="mb-6 text-2xl font-bold text-foreground">Requisitos Académicos</h2>
+              <h2 className="mb-6 text-2xl font-bold text-foreground">Documentos Necessários</h2>
               <Card className="rounded-2xl border-border/50 p-6">
                 <p className="mb-4 text-sm text-muted-foreground">Para se candidatar ao IPS, o aluno deve apresentar os seguintes documentos:</p>
                 <ul className="space-y-3">
@@ -371,26 +397,15 @@ const Admissions = () => {
                     </li>
                   ))}
                 </ul>
-              </Card>
-            </motion.section>
-
-            <motion.section variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3}>
-              <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-foreground">
-                <DollarSign className="h-6 w-6 text-accent" />
-                Propinas e Taxas
-              </h2>
-              <Card className="rounded-2xl border-border/50 p-6">
-                <div className="space-y-3">
-                  {tuition.map((t) => (
-                    <div key={t.item} className="flex items-center justify-between border-b border-border/30 pb-3 last:border-0">
-                      <span className="text-sm text-muted-foreground">{t.item}</span>
-                      <span className="text-sm font-semibold text-foreground">{t.value}</span>
-                    </div>
-                  ))}
+                <div className="mt-6 rounded-xl bg-accent/5 border border-accent/20 p-4">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Info className="h-4 w-4 text-accent" />
+                    Informação sobre Taxas
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    O IPS é uma instituição <strong>pública e gratuita</strong>. A única taxa cobrada é a <strong>taxa de inscrição de 2.000 Kz</strong> (pagamento único).
+                  </p>
                 </div>
-                <p className="mt-4 text-xs text-muted-foreground">
-                  * Os valores são indicativos e podem ser actualizados no início de cada ano lectivo.
-                </p>
               </Card>
             </motion.section>
           </div>
