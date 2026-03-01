@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LogOut, Users, Search, Trash2, Loader2, CheckCircle, XCircle, Clock,
   GraduationCap, Image, FileText, CalendarDays, Upload, Plus, Save, Edit2, X,
-  BookOpen, UserPlus, ClipboardList,
+  BookOpen, UserPlus, ClipboardList, Shield, Megaphone,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,87 +38,40 @@ const courseLabels: Record<string, string> = {
 };
 
 type Admission = {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  course: string;
-  secondary_course: string | null;
-  first_cycle_grade: number | null;
-  status: string;
-  message: string | null;
-  created_at: string;
+  id: string; first_name: string; last_name: string; email: string; phone: string;
+  course: string; secondary_course: string | null; first_cycle_grade: number | null;
+  status: string; message: string | null; created_at: string;
 };
 
 type Course = {
-  id: string;
-  slug: string;
-  name: string;
-  duration_years: number;
-  description: string | null;
-  advantages: string[];
-  is_active: boolean;
-  sort_order: number;
+  id: string; slug: string; name: string; duration_years: number;
+  description: string | null; advantages: string[]; is_active: boolean; sort_order: number;
 };
 
-type SiteContent = {
-  id: string;
-  section_key: string;
-  title: string | null;
-  content: string | null;
-};
-
-type CampusVisit = {
-  id: string;
-  visitor_name: string;
-  visitor_email: string;
-  visitor_phone: string;
-  visit_date: string;
-  num_visitors: number;
-  notes: string | null;
-  status: string;
-  created_at: string;
-};
-
-type CampusPhoto = {
-  id: string;
-  title: string;
-  description: string | null;
-  category: string;
-  storage_path: string;
-  created_at: string;
-};
+type SiteContent = { id: string; section_key: string; title: string | null; content: string | null; };
+type CampusVisit = { id: string; visitor_name: string; visitor_email: string; visitor_phone: string; visit_date: string; num_visitors: number; notes: string | null; status: string; created_at: string; };
+type CampusPhoto = { id: string; title: string; description: string | null; category: string; storage_path: string; created_at: string; };
 
 type Subject = {
-  id: string;
-  name: string;
-  code: string;
-  course_id: string;
-  teacher_id: string;
-  year: number;
-  semester: number;
-  teacher_name?: string;
-  course_name?: string;
+  id: string; name: string; code: string; course_id: string; teacher_id: string;
+  year: number; semester: number; teacher_name?: string; course_name?: string;
 };
 
 type Enrollment = {
-  id: string;
-  student_id: string;
-  course_id: string;
-  academic_year: string;
-  year_level: number;
-  student_name?: string;
-  course_name?: string;
+  id: string; student_id: string; course_id: string; academic_year: string;
+  year_level: number; student_name?: string; course_name?: string;
 };
 
-type ScheduleItem = {
-  id: string;
-  subject_id: string;
-  day_of_week: number;
-  start_time: string;
-  end_time: string;
-  room: string;
+type ScheduleItem = { id: string; subject_id: string; day_of_week: number; start_time: string; end_time: string; room: string; };
+
+type Announcement = {
+  id: string; title: string; content: string | null; category: string;
+  start_date: string | null; end_date: string | null; is_active: boolean;
+  sort_order: number;
+};
+
+type ManagedUser = {
+  user_id: string; display_name: string | null; role: string;
 };
 
 const AdminDashboard = () => {
@@ -162,6 +115,16 @@ const AdminDashboard = () => {
   const [schedulesList, setSchedulesList] = useState<ScheduleItem[]>([]);
   const [editingSchedule, setEditingSchedule] = useState<ScheduleItem | null>(null);
 
+  // Announcements
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+
+  // User Management
+  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([]);
+  const [newUserDialog, setNewUserDialog] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({ email: "", password: "", displayName: "", role: "teacher" });
+  const [creatingUser, setCreatingUser] = useState(false);
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -173,7 +136,7 @@ const AdminDashboard = () => {
         .eq("user_id", session.user.id);
 
       const userRoles = roles?.map((r) => r.role) || [];
-      if (!userRoles.includes("admin") && !userRoles.includes("teacher")) {
+      if (!userRoles.includes("admin")) {
         await supabase.auth.signOut();
         navigate("/auth");
         return;
@@ -188,7 +151,7 @@ const AdminDashboard = () => {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [admRes, courseRes, contentRes, visitRes, photoRes, subRes, enrRes, schRes] = await Promise.all([
+    const [admRes, courseRes, contentRes, visitRes, photoRes, subRes, enrRes, schRes, annRes] = await Promise.all([
       supabase.from("admissions").select("*").order("last_name").order("first_name"),
       supabase.from("courses").select("*").order("sort_order"),
       supabase.from("site_content").select("*"),
@@ -197,12 +160,14 @@ const AdminDashboard = () => {
       supabase.from("subjects").select("*, courses(name)"),
       supabase.from("enrollments").select("*, courses(name)"),
       supabase.from("schedules").select("*"),
+      supabase.from("announcements").select("*").order("sort_order"),
     ]);
     setAdmissions((admRes.data as Admission[]) || []);
     setCourses((courseRes.data as Course[]) || []);
     setContents((contentRes.data as SiteContent[]) || []);
     setVisits((visitRes.data as CampusVisit[]) || []);
     setPhotos((photoRes.data as CampusPhoto[]) || []);
+    setAnnouncements((annRes.data as Announcement[]) || []);
 
     // Subjects with teacher names
     const subs = (subRes.data || []) as any[];
@@ -230,6 +195,24 @@ const AdminDashboard = () => {
     }
 
     setSchedulesList((schRes.data || []) as ScheduleItem[]);
+
+    // Fetch managed users (all non-user roles)
+    const { data: allRoles } = await supabase.from("user_roles").select("user_id, role");
+    if (allRoles && allRoles.length > 0) {
+      const staffRoles = allRoles.filter(r => r.role !== "user");
+      const staffIds = [...new Set(staffRoles.map(r => r.user_id))];
+      if (staffIds.length > 0) {
+        const { data: staffProfiles } = await supabase.from("profiles").select("user_id, display_name").in("user_id", staffIds);
+        const profileMap: Record<string, string> = {};
+        (staffProfiles || []).forEach((p: any) => { profileMap[p.user_id] = p.display_name || "Sem nome"; });
+        setManagedUsers(staffRoles.map(r => ({
+          user_id: r.user_id,
+          display_name: profileMap[r.user_id] || "Sem nome",
+          role: r.role,
+        })));
+      }
+    }
+
     setLoading(false);
   }, []);
 
@@ -258,6 +241,8 @@ const AdminDashboard = () => {
     switch (status) {
       case "aceite": return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "rejeitado": return <XCircle className="h-4 w-4 text-destructive" />;
+      case "confirmado": return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "cancelado": return <XCircle className="h-4 w-4 text-destructive" />;
       default: return <Clock className="h-4 w-4 text-yellow-500" />;
     }
   };
@@ -307,14 +292,12 @@ const AdminDashboard = () => {
     setUploading(true);
     const ext = file.name.split(".").pop();
     const path = `${Date.now()}.${ext}`;
-
     const { error: uploadErr } = await supabase.storage.from("campus-photos").upload(path, file);
     if (uploadErr) {
       toast({ title: "Erro no upload", description: uploadErr.message, variant: "destructive" });
       setUploading(false);
       return;
     }
-
     const { data: { session } } = await supabase.auth.getSession();
     await supabase.from("campus_photos").insert({
       title: photoForm.title,
@@ -323,7 +306,6 @@ const AdminDashboard = () => {
       storage_path: path,
       uploaded_by: session?.user.id,
     });
-
     setPhotoForm({ title: "", description: "", category: "geral" });
     setUploading(false);
     fetchAll();
@@ -358,25 +340,6 @@ const AdminDashboard = () => {
   };
 
   // ---- Enrollments ----
-  const addEnrollment = async () => {
-    // Find user by email via profiles (we need to look up user_id)
-    const { data: allProfiles } = await supabase.from("profiles").select("user_id, display_name");
-    // We need to find user by checking auth - let's use a simpler approach
-    // Look through admissions or direct profile lookup
-    if (!newEnrollment.student_email || !newEnrollment.course_id) {
-      toast({ title: "Preencha todos os campos", variant: "destructive" });
-      return;
-    }
-
-    // We'll use a workaround: search profiles and match
-    const { data: users } = await supabase.rpc("has_role", { _user_id: "00000000-0000-0000-0000-000000000000", _role: "user" as any });
-    
-    // Simple approach: ask admin to enter user_id directly or use email lookup
-    // For now, we store email-based lookup through a query
-    toast({ title: "Para matricular estudantes, utilize o ID do utilizador. Funcionalidade em desenvolvimento.", variant: "destructive" });
-    setEnrollDialog(false);
-  };
-
   const enrollStudentById = async (studentId: string, courseId: string, yearLevel: number, academicYear: string) => {
     const { error } = await supabase.from("enrollments").insert({
       student_id: studentId,
@@ -418,6 +381,89 @@ const AdminDashboard = () => {
     toast({ title: "Horário eliminado" });
   };
 
+  // ---- Announcements ----
+  const saveAnnouncement = async () => {
+    if (!editingAnnouncement) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    const { id, ...rest } = editingAnnouncement;
+    const payload = { ...rest, created_by: session?.user.id };
+    if (id) {
+      await supabase.from("announcements").update(payload).eq("id", id);
+    } else {
+      await supabase.from("announcements").insert(payload);
+    }
+    setEditingAnnouncement(null);
+    fetchAll();
+    toast({ title: "Anúncio guardado" });
+  };
+
+  const deleteAnnouncement = async (id: string) => {
+    await supabase.from("announcements").delete().eq("id", id);
+    fetchAll();
+    toast({ title: "Anúncio eliminado" });
+  };
+
+  // ---- User Management ----
+  const createStaffUser = async () => {
+    if (!newUserForm.email || !newUserForm.password || !newUserForm.displayName) {
+      toast({ title: "Preencha todos os campos", variant: "destructive" });
+      return;
+    }
+    if (newUserForm.password.length < 6) {
+      toast({ title: "A palavra-passe deve ter pelo menos 6 caracteres", variant: "destructive" });
+      return;
+    }
+    setCreatingUser(true);
+
+    // Create the user via signup
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: newUserForm.email,
+      password: newUserForm.password,
+      options: {
+        data: { display_name: newUserForm.displayName },
+      },
+    });
+
+    if (signUpError || !signUpData.user) {
+      toast({ title: "Erro ao criar conta", description: signUpError?.message || "Erro desconhecido", variant: "destructive" });
+      setCreatingUser(false);
+      return;
+    }
+
+    // Assign the role
+    const { error: roleError } = await supabase.from("user_roles").insert({
+      user_id: signUpData.user.id,
+      role: newUserForm.role as any,
+    });
+
+    if (roleError) {
+      toast({ title: "Conta criada mas erro ao atribuir papel", description: roleError.message, variant: "destructive" });
+    } else {
+      toast({ title: "Conta criada com sucesso!", description: `${newUserForm.displayName} (${newUserForm.role})` });
+    }
+
+    setNewUserForm({ email: "", password: "", displayName: "", role: "teacher" });
+    setNewUserDialog(false);
+    setCreatingUser(false);
+    
+    // Re-login as admin since signUp may change session
+    // We need to restore the admin session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({ title: "Sessão expirada", description: "Por favor, faça login novamente.", variant: "destructive" });
+      navigate("/auth");
+      return;
+    }
+    
+    fetchAll();
+  };
+
+  const removeUserRole = async (userId: string, role: string) => {
+    await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
+    fetchAll();
+    toast({ title: "Papel removido" });
+  };
+
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
   if (loading) {
@@ -427,6 +473,15 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
+  const roleLabels: Record<string, string> = {
+    admin: "Administrador",
+    teacher: "Professor",
+    director: "Director",
+    subdirector: "Sub-Director",
+    coordinator: "Coordenador",
+    user: "Estudante",
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -447,6 +502,8 @@ const AdminDashboard = () => {
         <Tabs defaultValue="admissions">
           <TabsList className="mb-8 flex-wrap">
             <TabsTrigger value="admissions" className="gap-2 rounded-xl"><Users className="h-4 w-4" />Candidaturas</TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 rounded-xl"><Shield className="h-4 w-4" />Utilizadores</TabsTrigger>
+            <TabsTrigger value="announcements" className="gap-2 rounded-xl"><Megaphone className="h-4 w-4" />Anúncios</TabsTrigger>
             <TabsTrigger value="courses" className="gap-2 rounded-xl"><GraduationCap className="h-4 w-4" />Cursos</TabsTrigger>
             <TabsTrigger value="subjects" className="gap-2 rounded-xl"><BookOpen className="h-4 w-4" />Disciplinas</TabsTrigger>
             <TabsTrigger value="enrollments" className="gap-2 rounded-xl"><UserPlus className="h-4 w-4" />Matrículas</TabsTrigger>
@@ -542,6 +599,180 @@ const AdminDashboard = () => {
                 </Table>
               </div>
             </Card>
+          </TabsContent>
+
+          {/* USERS TAB */}
+          <TabsContent value="users">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Gestão de Utilizadores</h2>
+              <Dialog open={newUserDialog} onOpenChange={setNewUserDialog}>
+                <DialogTrigger asChild>
+                  <Button className="rounded-xl"><Plus className="mr-2 h-4 w-4" />Criar Conta</Button>
+                </DialogTrigger>
+                <DialogContent className="rounded-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Criar Conta de Pessoal</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>Nome Completo *</Label>
+                      <Input className="rounded-xl" placeholder="Nome do colaborador" value={newUserForm.displayName} onChange={e => setNewUserForm({ ...newUserForm, displayName: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email *</Label>
+                      <Input className="rounded-xl" type="email" placeholder="email@exemplo.com" value={newUserForm.email} onChange={e => setNewUserForm({ ...newUserForm, email: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Palavra-passe *</Label>
+                      <Input className="rounded-xl" type="password" placeholder="Mínimo 6 caracteres" value={newUserForm.password} onChange={e => setNewUserForm({ ...newUserForm, password: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Papel / Cargo</Label>
+                      <Select value={newUserForm.role} onValueChange={v => setNewUserForm({ ...newUserForm, role: v })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="director">Director</SelectItem>
+                          <SelectItem value="subdirector">Sub-Director</SelectItem>
+                          <SelectItem value="coordinator">Coordenador</SelectItem>
+                          <SelectItem value="teacher">Professor</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button className="w-full rounded-xl" onClick={createStaffUser} disabled={creatingUser}>
+                      {creatingUser ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                      Criar Conta
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Card className="rounded-2xl border-border/50 overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Papel</TableHead>
+                      <TableHead>ID</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {managedUsers.map((u, i) => (
+                      <TableRow key={`${u.user_id}-${u.role}-${i}`}>
+                        <TableCell className="font-medium">{u.display_name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="rounded-lg capitalize">{roleLabels[u.role] || u.role}</Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground font-mono">{u.user_id.substring(0, 8)}...</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => removeUserRole(u.user_id, u.role)} className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {managedUsers.length === 0 && (
+                      <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">Nenhum utilizador com papel especial.</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* ANNOUNCEMENTS TAB */}
+          <TabsContent value="announcements">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Anúncios e Datas Institucionais</h2>
+              <Button onClick={() => setEditingAnnouncement({ id: "", title: "", content: "", category: "geral", start_date: "", end_date: "", is_active: true, sort_order: announcements.length + 1 })} className="rounded-xl">
+                <Plus className="mr-2 h-4 w-4" />Novo Anúncio
+              </Button>
+            </div>
+
+            {editingAnnouncement && (
+              <Card className="rounded-2xl border-border/50 p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">{editingAnnouncement.id ? "Editar" : "Novo"} Anúncio</h3>
+                  <Button variant="ghost" size="icon" onClick={() => setEditingAnnouncement(null)}><X className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Título *</Label>
+                      <Input className="rounded-xl" value={editingAnnouncement.title} onChange={e => setEditingAnnouncement({ ...editingAnnouncement, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Categoria</Label>
+                      <Select value={editingAnnouncement.category} onValueChange={v => setEditingAnnouncement({ ...editingAnnouncement, category: v })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="geral">Geral</SelectItem>
+                          <SelectItem value="candidaturas">Candidaturas</SelectItem>
+                          <SelectItem value="documentos">Entrega de Documentos</SelectItem>
+                          <SelectItem value="provas">Provas de Admissão</SelectItem>
+                          <SelectItem value="resultados">Resultados</SelectItem>
+                          <SelectItem value="matriculas">Matrículas / Início de Aulas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Conteúdo / Descrição</Label>
+                    <Textarea className="rounded-xl" rows={3} value={editingAnnouncement.content || ""} onChange={e => setEditingAnnouncement({ ...editingAnnouncement, content: e.target.value })} />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label>Data Início</Label>
+                      <Input type="date" className="rounded-xl" value={editingAnnouncement.start_date || ""} onChange={e => setEditingAnnouncement({ ...editingAnnouncement, start_date: e.target.value || null })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Fim</Label>
+                      <Input type="date" className="rounded-xl" value={editingAnnouncement.end_date || ""} onChange={e => setEditingAnnouncement({ ...editingAnnouncement, end_date: e.target.value || null })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Ordem</Label>
+                      <Input type="number" className="rounded-xl" value={editingAnnouncement.sort_order} onChange={e => setEditingAnnouncement({ ...editingAnnouncement, sort_order: parseInt(e.target.value) || 0 })} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={editingAnnouncement.is_active} onChange={e => setEditingAnnouncement({ ...editingAnnouncement, is_active: e.target.checked })} />
+                      Activo (visível ao público)
+                    </label>
+                  </div>
+                  <Button onClick={saveAnnouncement} className="rounded-xl"><Save className="mr-2 h-4 w-4" />Guardar</Button>
+                </div>
+              </Card>
+            )}
+
+            <div className="grid gap-4">
+              {announcements.map(ann => (
+                <Card key={ann.id} className="rounded-2xl border-border/50 p-5 flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="rounded-lg text-xs capitalize">{ann.category}</Badge>
+                      {!ann.is_active && <Badge variant="destructive" className="rounded-lg text-xs">Inactivo</Badge>}
+                    </div>
+                    <h3 className="font-semibold text-foreground">{ann.title}</h3>
+                    {ann.content && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{ann.content}</p>}
+                    {(ann.start_date || ann.end_date) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {ann.start_date && new Date(ann.start_date).toLocaleDateString("pt-AO")}
+                        {ann.end_date && ` — ${new Date(ann.end_date).toLocaleDateString("pt-AO")}`}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => setEditingAnnouncement(ann)}><Edit2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => deleteAnnouncement(ann.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                </Card>
+              ))}
+              {announcements.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum anúncio criado. Adicione datas de candidatura, provas, resultados, etc.</p>}
+            </div>
           </TabsContent>
 
           {/* COURSES TAB */}
@@ -667,16 +898,18 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>ID do Professor (UUID)</Label>
-                    <Input className="rounded-xl" placeholder="UUID do professor" value={editingSubject.teacher_id} onChange={e => setEditingSubject({ ...editingSubject, teacher_id: e.target.value })} />
-                    {teacherProfiles.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {teacherProfiles.map(tp => (
-                          <Button key={tp.user_id} variant="outline" size="sm" className="rounded-lg text-xs" onClick={() => setEditingSubject({ ...editingSubject, teacher_id: tp.user_id })}>
-                            {tp.display_name}
-                          </Button>
-                        ))}
-                      </div>
+                    <Label>Professor</Label>
+                    {managedUsers.filter(u => ["teacher", "director", "subdirector", "coordinator"].includes(u.role)).length > 0 ? (
+                      <Select value={editingSubject.teacher_id} onValueChange={v => setEditingSubject({ ...editingSubject, teacher_id: v })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue placeholder="Seleccione o professor" /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {[...new Map(managedUsers.filter(u => ["teacher", "director", "subdirector", "coordinator"].includes(u.role)).map(u => [u.user_id, u])).values()].map(u => (
+                            <SelectItem key={u.user_id} value={u.user_id}>{u.display_name} ({roleLabels[u.role]})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input className="rounded-xl" placeholder="UUID do professor" value={editingSubject.teacher_id} onChange={e => setEditingSubject({ ...editingSubject, teacher_id: e.target.value })} />
                     )}
                   </div>
                   <Button onClick={saveSubject} className="rounded-xl"><Save className="mr-2 h-4 w-4" />Guardar</Button>
@@ -896,7 +1129,6 @@ const AdminDashboard = () => {
           {/* PHOTOS TAB */}
           <TabsContent value="photos">
             <h2 className="text-xl font-bold text-foreground mb-6">Galeria de Fotos do Campus</h2>
-
             <Card className="rounded-2xl border-border/50 p-6 mb-6">
               <h3 className="text-sm font-semibold text-foreground mb-4">Adicionar Nova Foto</h3>
               <div className="grid gap-4 sm:grid-cols-3">
@@ -950,7 +1182,6 @@ const AdminDashboard = () => {
           {/* CONTENT TAB */}
           <TabsContent value="content">
             <h2 className="text-xl font-bold text-foreground mb-6">Editar Conteúdo do Site</h2>
-
             {editingContent ? (
               <Card className="rounded-2xl border-border/50 p-6">
                 <div className="flex items-center justify-between mb-4">
