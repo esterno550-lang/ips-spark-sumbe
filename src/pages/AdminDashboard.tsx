@@ -415,47 +415,36 @@ const AdminDashboard = () => {
     }
     setCreatingUser(true);
 
-    // Create the user via signup
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: newUserForm.email,
-      password: newUserForm.password,
-      options: {
-        data: { display_name: newUserForm.displayName },
-      },
-    });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Sessão expirada", variant: "destructive" });
+        navigate("/auth");
+        return;
+      }
 
-    if (signUpError || !signUpData.user) {
-      toast({ title: "Erro ao criar conta", description: signUpError?.message || "Erro desconhecido", variant: "destructive" });
-      setCreatingUser(false);
-      return;
+      const response = await supabase.functions.invoke("create-staff-user", {
+        body: {
+          email: newUserForm.email,
+          password: newUserForm.password,
+          displayName: newUserForm.displayName,
+          role: newUserForm.role,
+        },
+      });
+
+      if (response.error || response.data?.error) {
+        toast({ title: "Erro ao criar conta", description: response.data?.error || response.error?.message, variant: "destructive" });
+      } else {
+        toast({ title: "Conta criada com sucesso!", description: `${newUserForm.displayName} (${newUserForm.role})` });
+        setNewUserForm({ email: "", password: "", displayName: "", role: "teacher" });
+        setNewUserDialog(false);
+        fetchAll();
+      }
+    } catch (err: any) {
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
     }
 
-    // Assign the role
-    const { error: roleError } = await supabase.from("user_roles").insert({
-      user_id: signUpData.user.id,
-      role: newUserForm.role as any,
-    });
-
-    if (roleError) {
-      toast({ title: "Conta criada mas erro ao atribuir papel", description: roleError.message, variant: "destructive" });
-    } else {
-      toast({ title: "Conta criada com sucesso!", description: `${newUserForm.displayName} (${newUserForm.role})` });
-    }
-
-    setNewUserForm({ email: "", password: "", displayName: "", role: "teacher" });
-    setNewUserDialog(false);
     setCreatingUser(false);
-    
-    // Re-login as admin since signUp may change session
-    // We need to restore the admin session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({ title: "Sessão expirada", description: "Por favor, faça login novamente.", variant: "destructive" });
-      navigate("/auth");
-      return;
-    }
-    
-    fetchAll();
   };
 
   const removeUserRole = async (userId: string, role: string) => {
