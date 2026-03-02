@@ -748,31 +748,41 @@ const AdminDashboard = () => {
               </Card>
             )}
 
-            <div className="grid gap-4">
-              {announcements.map(ann => (
-                <Card key={ann.id} className="rounded-2xl border-border/50 p-5 flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="rounded-lg text-xs capitalize">{ann.category}</Badge>
-                      {!ann.is_active && <Badge variant="destructive" className="rounded-lg text-xs">Inactivo</Badge>}
+            {announcements.length === 0 ? (
+              <Card className="rounded-2xl border-border/50 p-12 text-center">
+                <Megaphone className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum anúncio criado</h3>
+                <p className="text-sm text-muted-foreground mb-4">Adicione datas de candidatura, provas, resultados, início de aulas, etc.</p>
+                <Button onClick={() => setEditingAnnouncement({ id: "", title: "", content: "", category: "geral", start_date: "", end_date: "", is_active: true, sort_order: 1 })} className="rounded-xl">
+                  <Plus className="mr-2 h-4 w-4" />Criar Primeiro Anúncio
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {announcements.map(ann => (
+                  <Card key={ann.id} className="rounded-2xl border-border/50 p-5 flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="rounded-lg text-xs capitalize">{ann.category}</Badge>
+                        {!ann.is_active && <Badge variant="destructive" className="rounded-lg text-xs">Inactivo</Badge>}
+                      </div>
+                      <h3 className="font-semibold text-foreground">{ann.title}</h3>
+                      {ann.content && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{ann.content}</p>}
+                      {(ann.start_date || ann.end_date) && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {ann.start_date && new Date(ann.start_date).toLocaleDateString("pt-AO")}
+                          {ann.end_date && ` — ${new Date(ann.end_date).toLocaleDateString("pt-AO")}`}
+                        </p>
+                      )}
                     </div>
-                    <h3 className="font-semibold text-foreground">{ann.title}</h3>
-                    {ann.content && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{ann.content}</p>}
-                    {(ann.start_date || ann.end_date) && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {ann.start_date && new Date(ann.start_date).toLocaleDateString("pt-AO")}
-                        {ann.end_date && ` — ${new Date(ann.end_date).toLocaleDateString("pt-AO")}`}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setEditingAnnouncement(ann)}><Edit2 className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => deleteAnnouncement(ann.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </Card>
-              ))}
-              {announcements.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum anúncio criado. Adicione datas de candidatura, provas, resultados, etc.</p>}
-            </div>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => setEditingAnnouncement(ann)}><Edit2 className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => deleteAnnouncement(ann.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* COURSES TAB */}
