@@ -2,20 +2,11 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield, ChevronLeft, ChevronRight } from "lucide-react";
+import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import campusNight from "@/assets/campus-night.webp";
 import campusEntrance from "@/assets/campus-entrance.jpeg";
 import campusLab from "@/assets/campus-lab.jpeg";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, delay: i * 0.1 },
-  }),
-};
 
 const heroImages = [
   { src: campusEntrance, alt: "Entrada do campus do IPS" },
@@ -48,7 +39,7 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+    }, 6000);
     return () => clearInterval(timer);
   }, []);
 
@@ -57,129 +48,164 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
 
   return (
     <section className="relative overflow-hidden">
-      {/* Hero Image Carousel */}
-      <div className="relative h-[320px] sm:h-[400px] md:h-[480px]">
+      {/* Hero Image Carousel — Full viewport height */}
+      <div className="relative h-[85vh] min-h-[480px] max-h-[800px]">
         <AnimatePresence mode="wait">
           <motion.img
             key={current}
             src={heroImages[current].src}
             alt={heroImages[current].alt}
             className="absolute inset-0 h-full w-full object-cover"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, scale: 1.08 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 1.2, ease: "easeOut" as const }}
             loading="eager"
           />
         </AnimatePresence>
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/50 to-background" />
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/40 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-transparent to-transparent" />
 
         {/* Carousel controls */}
-        <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/30 backdrop-blur-sm text-white hover:bg-background/50 transition-colors">
+        <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/20 backdrop-blur-md text-white hover:bg-background/40 transition-all hover:scale-110">
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/30 backdrop-blur-sm text-white hover:bg-background/50 transition-colors">
+        <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/20 backdrop-blur-md text-white hover:bg-background/40 transition-all hover:scale-110">
           <ChevronRight className="h-5 w-5" />
         </button>
 
         {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex gap-2">
           {heroImages.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`h-2 rounded-full transition-all ${i === current ? "w-6 bg-accent" : "w-2 bg-white/50"}`}
+              className={`h-2.5 rounded-full transition-all duration-500 ${i === current ? "w-8 bg-accent" : "w-2.5 bg-white/40 hover:bg-white/60"}`}
             />
           ))}
         </div>
 
+        {/* Main content overlay */}
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4">
-            <motion.h1
-              className="max-w-2xl text-3xl font-extrabold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl drop-shadow-lg"
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={0}
-            >
-              Formação técnica, inovação e impacto —{" "}
-              <span className="text-accent">construindo futuros</span> no Sumbe.
-            </motion.h1>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 py-12 md:py-16">
-        {/* Decorative blurs */}
-        <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-accent/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-secondary/20 blur-3xl" />
-
-        <div className="container mx-auto">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            <div>
-              <motion.p
-                className="max-w-lg text-lg text-muted-foreground leading-relaxed"
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={1}
+            <div className="max-w-2xl">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
               >
-                O Instituto Politécnico do Sumbe é uma instituição de ensino médio técnico que forma profissionais competentes, promovendo a formação técnica e profissional para o desenvolvimento sustentável de Angola.
+                <motion.div
+                  className="inline-flex items-center gap-2 mb-6 rounded-full bg-accent/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white border border-accent/30"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  Candidaturas Abertas 2026
+                </motion.div>
+              </motion.div>
+
+              <motion.h1
+                className="text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+              >
+                Formação técnica,
+                <br />
+                <span className="text-gradient bg-gradient-to-r from-accent to-blue-300 bg-clip-text text-transparent">
+                  inovação
+                </span>{" "}
+                e impacto.
+              </motion.h1>
+
+              <motion.p
+                className="mt-6 max-w-lg text-lg text-white/80 leading-relaxed"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+              >
+                O Instituto Politécnico do Sumbe forma profissionais competentes para o desenvolvimento sustentável de Angola.
               </motion.p>
 
               <motion.div
                 className="mt-8 flex flex-wrap gap-3"
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={2}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
               >
-                <Button variant="hero" size="lg" onClick={() => onNavigate?.("programs")}>
+                <Button variant="hero" size="lg" className="rounded-xl text-base px-8" onClick={() => onNavigate?.("programs")}>
                   Explorar cursos
                 </Button>
-                <Button variant="heroOutline" size="lg" onClick={() => onNavigate?.("visit")}>
+                <Button variant="heroOutline" size="lg" className="rounded-xl text-base px-8" onClick={() => onNavigate?.("visit")}>
                   Planear uma visita
                 </Button>
               </motion.div>
 
+              {/* Stats inline */}
               <motion.div
-                className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4"
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={3}
+                className="mt-10 flex flex-wrap gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
               >
-                {stats.map((stat) => (
-                  <Card key={stat.label} className="flex flex-col items-center gap-1 rounded-2xl border-border/50 bg-card/60 p-4 backdrop-blur-sm">
-                    <stat.icon className="h-5 w-5 text-accent" />
-                    <span className="text-2xl font-bold text-foreground">{stat.value}</span>
-                    <span className="text-xs text-muted-foreground">{stat.label}</span>
-                  </Card>
+                {stats.map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    className="flex items-center gap-2.5"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.9 + i * 0.1 }}
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
+                      <stat.icon className="h-4 w-4 text-accent" />
+                    </div>
+                    <div>
+                      <span className="text-xl font-bold text-white">{stat.value}</span>
+                      <p className="text-xs text-white/60">{stat.label}</p>
+                    </div>
+                  </motion.div>
                 ))}
               </motion.div>
             </div>
-
-            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={4}>
-              <Card className="rounded-2xl border-border/50 bg-card/80 p-6 backdrop-blur-sm">
-                <h3 className="mb-4 text-lg font-semibold text-foreground">Links Rápidos</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {quickLinks.map((link) => (
-                    <button
-                      key={link.label}
-                      className="flex items-center gap-3 rounded-xl bg-muted/50 px-4 py-3 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent/10 hover:text-accent"
-                    >
-                      <link.icon className="h-5 w-5 text-accent" />
-                      {link.label}
-                    </button>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
           </div>
+        </div>
+      </div>
+
+      {/* Quick Links section below hero */}
+      <div className="px-4 py-10 md:py-14">
+        <div className="container mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card className="rounded-2xl border-border/50 bg-card/80 p-6 backdrop-blur-sm">
+              <h3 className="mb-4 text-lg font-semibold text-foreground">Links Rápidos</h3>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {quickLinks.map((link, i) => (
+                  <motion.button
+                    key={link.label}
+                    className="flex items-center gap-3 rounded-xl bg-muted/50 px-4 py-3.5 text-left text-sm font-medium text-foreground transition-all hover:bg-accent/10 hover:text-accent hover:shadow-md"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10">
+                      <link.icon className="h-4 w-4 text-accent" />
+                    </div>
+                    {link.label}
+                  </motion.button>
+                ))}
+              </div>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </section>

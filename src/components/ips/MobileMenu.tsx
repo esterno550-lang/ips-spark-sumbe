@@ -22,8 +22,8 @@ interface MobileMenuProps {
 
 const menuVariants = {
   hidden: { height: 0, opacity: 0 },
-  visible: { height: "auto", opacity: 1, transition: { duration: 0.3, ease: "easeOut" } },
-  exit: { height: 0, opacity: 0, transition: { duration: 0.2, ease: "easeIn" } },
+  visible: { height: "auto", opacity: 1, transition: { duration: 0.3, ease: "easeOut" as const } },
+  exit: { height: 0, opacity: 0, transition: { duration: 0.2, ease: "easeIn" as const } },
 };
 
 const itemVariants = {
