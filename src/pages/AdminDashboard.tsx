@@ -178,6 +178,7 @@ const AdminDashboard = () => {
     setVisits((visitRes.data as CampusVisit[]) || []);
     setPhotos((photoRes.data as CampusPhoto[]) || []);
     setAnnouncements((annRes.data as Announcement[]) || []);
+    setCalendarEvents((calRes.data as CalendarEventItem[]) || []);
 
     // Subjects with teacher names
     const subs = (subRes.data || []) as any[];
