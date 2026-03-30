@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LogOut, Users, Search, Trash2, Loader2, CheckCircle, XCircle, Clock,
   GraduationCap, Image, FileText, CalendarDays, Upload, Plus, Save, Edit2, X,
-  BookOpen, UserPlus, ClipboardList, Shield, Megaphone,
+  BookOpen, UserPlus, ClipboardList, Shield, Megaphone, Calendar,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
