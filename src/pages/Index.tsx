@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/ips/Header";
@@ -26,7 +26,7 @@ const Index = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="sticky top-16 z-40 border-b border-border/40 bg-card/80 backdrop-blur-xl">
             <div className="container mx-auto px-4">
-              <TabsList className="h-12 w-full justify-start gap-1 rounded-none bg-transparent p-0">
+              <TabsList className="h-12 w-full justify-start gap-1 rounded-none bg-transparent p-0 overflow-x-auto">
                 <TabsTrigger
                   value="home"
                   className="rounded-xl data-[state=active]:bg-accent/10 data-[state=active]:text-accent data-[state=active]:shadow-none"
@@ -49,7 +49,7 @@ const Index = () => {
                   value="news"
                   className="rounded-xl data-[state=active]:bg-accent/10 data-[state=active]:text-accent data-[state=active]:shadow-none"
                 >
-                  Notícias & Eventos
+                  Notícias
                 </TabsTrigger>
               </TabsList>
             </div>
