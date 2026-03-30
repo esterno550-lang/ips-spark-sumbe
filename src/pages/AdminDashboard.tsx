@@ -1298,6 +1298,104 @@ const AdminDashboard = () => {
               </div>
             </Card>
           </TabsContent>
+
+          {/* CALENDAR EVENTS TAB */}
+          <TabsContent value="calendar">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Calendário Académico</h2>
+              <Button onClick={() => setEditingCalendarEvent({ id: "", title: "", description: "", event_date: "", end_date: null, event_type: "evento", is_public: true })} className="rounded-xl">
+                <Plus className="mr-2 h-4 w-4" />Novo Evento
+              </Button>
+            </div>
+
+            {editingCalendarEvent && (
+              <Card className="rounded-2xl border-border/50 p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">{editingCalendarEvent.id ? "Editar" : "Novo"} Evento</h3>
+                  <Button variant="ghost" size="icon" onClick={() => setEditingCalendarEvent(null)}><X className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Título *</Label>
+                      <Input className="rounded-xl" value={editingCalendarEvent.title} onChange={e => setEditingCalendarEvent({ ...editingCalendarEvent, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tipo</Label>
+                      <Select value={editingCalendarEvent.event_type} onValueChange={v => setEditingCalendarEvent({ ...editingCalendarEvent, event_type: v })}>
+                        <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="evento">Evento</SelectItem>
+                          <SelectItem value="exame">Exame</SelectItem>
+                          <SelectItem value="feriado">Feriado</SelectItem>
+                          <SelectItem value="academico">Académico</SelectItem>
+                          <SelectItem value="reuniao">Reunião</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Descrição</Label>
+                    <Textarea className="rounded-xl" rows={3} value={editingCalendarEvent.description || ""} onChange={e => setEditingCalendarEvent({ ...editingCalendarEvent, description: e.target.value })} />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Data Início *</Label>
+                      <Input type="date" className="rounded-xl" value={editingCalendarEvent.event_date} onChange={e => setEditingCalendarEvent({ ...editingCalendarEvent, event_date: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Fim (opcional)</Label>
+                      <Input type="date" className="rounded-xl" value={editingCalendarEvent.end_date || ""} onChange={e => setEditingCalendarEvent({ ...editingCalendarEvent, end_date: e.target.value || null })} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={editingCalendarEvent.is_public} onChange={e => setEditingCalendarEvent({ ...editingCalendarEvent, is_public: e.target.checked })} />
+                      Público (visível no calendário)
+                    </label>
+                  </div>
+                  <Button onClick={saveCalendarEvent} className="rounded-xl"><Save className="mr-2 h-4 w-4" />Guardar</Button>
+                </div>
+              </Card>
+            )}
+
+            {calendarEvents.length === 0 ? (
+              <Card className="rounded-2xl border-border/50 p-12 text-center">
+                <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum evento no calendário</h3>
+                <p className="text-sm text-muted-foreground mb-4">Adicione exames, feriados, eventos académicos e reuniões.</p>
+                <Button onClick={() => setEditingCalendarEvent({ id: "", title: "", description: "", event_date: "", end_date: null, event_type: "evento", is_public: true })} className="rounded-xl">
+                  <Plus className="mr-2 h-4 w-4" />Criar Primeiro Evento
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {calendarEvents.map(ev => {
+                  const typeLabels: Record<string, string> = { evento: "Evento", exame: "Exame", feriado: "Feriado", academico: "Académico", reuniao: "Reunião" };
+                  return (
+                    <Card key={ev.id} className="rounded-2xl border-border/50 p-5 flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="rounded-lg text-xs capitalize">{typeLabels[ev.event_type] || ev.event_type}</Badge>
+                          {!ev.is_public && <Badge variant="destructive" className="rounded-lg text-xs">Privado</Badge>}
+                        </div>
+                        <h3 className="font-semibold text-foreground">{ev.title}</h3>
+                        {ev.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{ev.description}</p>}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(ev.event_date).toLocaleDateString("pt-AO")}
+                          {ev.end_date && ` — ${new Date(ev.end_date).toLocaleDateString("pt-AO")}`}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setEditingCalendarEvent(ev)}><Edit2 className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteCalendarEvent(ev.id)} className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
     </div>
