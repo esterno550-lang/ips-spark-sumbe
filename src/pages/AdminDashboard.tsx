@@ -533,6 +533,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="photos" className="gap-2 rounded-xl"><Image className="h-4 w-4" />Fotos</TabsTrigger>
             <TabsTrigger value="content" className="gap-2 rounded-xl"><FileText className="h-4 w-4" />Conteúdo</TabsTrigger>
             <TabsTrigger value="visits" className="gap-2 rounded-xl"><CalendarDays className="h-4 w-4" />Visitas</TabsTrigger>
+            <TabsTrigger value="calendar" className="gap-2 rounded-xl"><Calendar className="h-4 w-4" />Calendário</TabsTrigger>
           </TabsList>
 
           {/* ADMISSIONS TAB */}
