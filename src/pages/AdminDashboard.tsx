@@ -70,6 +70,11 @@ type Announcement = {
   sort_order: number;
 };
 
+type CalendarEventItem = {
+  id: string; title: string; description: string | null; event_date: string;
+  end_date: string | null; event_type: string; is_public: boolean;
+};
+
 type ManagedUser = {
   user_id: string; display_name: string | null; role: string;
 };
@@ -118,6 +123,10 @@ const AdminDashboard = () => {
   // Announcements
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+
+  // Calendar Events
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEventItem[]>([]);
+  const [editingCalendarEvent, setEditingCalendarEvent] = useState<CalendarEventItem | null>(null);
 
   // User Management
   const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([]);
