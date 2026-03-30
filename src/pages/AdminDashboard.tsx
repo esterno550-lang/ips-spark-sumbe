@@ -414,6 +414,28 @@ const AdminDashboard = () => {
     toast({ title: "Anúncio eliminado" });
   };
 
+  // ---- Calendar Events ----
+  const saveCalendarEvent = async () => {
+    if (!editingCalendarEvent) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    const { id, ...rest } = editingCalendarEvent;
+    const payload = { ...rest, created_by: session?.user.id };
+    if (id) {
+      await supabase.from("calendar_events").update(payload).eq("id", id);
+    } else {
+      await supabase.from("calendar_events").insert(payload);
+    }
+    setEditingCalendarEvent(null);
+    fetchAll();
+    toast({ title: "Evento guardado" });
+  };
+
+  const deleteCalendarEvent = async (id: string) => {
+    await supabase.from("calendar_events").delete().eq("id", id);
+    fetchAll();
+    toast({ title: "Evento eliminado" });
+  };
+
   // ---- User Management ----
   const createStaffUser = async () => {
     if (!newUserForm.email || !newUserForm.password || !newUserForm.displayName) {
