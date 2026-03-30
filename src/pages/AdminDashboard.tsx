@@ -160,7 +160,7 @@ const AdminDashboard = () => {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [admRes, courseRes, contentRes, visitRes, photoRes, subRes, enrRes, schRes, annRes] = await Promise.all([
+    const [admRes, courseRes, contentRes, visitRes, photoRes, subRes, enrRes, schRes, annRes, calRes] = await Promise.all([
       supabase.from("admissions").select("*").order("last_name").order("first_name"),
       supabase.from("courses").select("*").order("sort_order"),
       supabase.from("site_content").select("*"),
@@ -170,6 +170,7 @@ const AdminDashboard = () => {
       supabase.from("enrollments").select("*, courses(name)"),
       supabase.from("schedules").select("*"),
       supabase.from("announcements").select("*").order("sort_order"),
+      supabase.from("calendar_events").select("*").order("event_date"),
     ]);
     setAdmissions((admRes.data as Admission[]) || []);
     setCourses((courseRes.data as Course[]) || []);
