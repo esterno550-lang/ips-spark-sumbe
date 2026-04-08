@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Search, GraduationCap, Zap, Leaf, Snowflake } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -80,8 +80,21 @@ const ProgramsSection = () => {
     });
   }, [search, area]);
 
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const bgX = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
+
   return (
-    <section className="px-4 py-16">
+    <section ref={sectionRef} className="relative px-4 py-16 overflow-hidden">
+      {/* Floating background decoration */}
+      <motion.div
+        className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-accent/5 blur-3xl"
+        style={{ x: bgX }}
+      />
+      <motion.div
+        className="pointer-events-none absolute -left-32 bottom-20 h-64 w-64 rounded-full bg-primary/5 blur-3xl"
+        style={{ x: useTransform(scrollYProgress, [0, 1], ["5%", "-5%"]) }}
+      />
       <div className="container mx-auto">
         <motion.div
           className="mb-8"

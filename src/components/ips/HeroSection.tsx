@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GraduationCap, Users, BookOpen, Award, Info, MapPin, Shield, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import AnimatedCounter from "@/components/ips/AnimatedCounter";
 import campusNight from "@/assets/campus-night.webp";
 import campusEntrance from "@/assets/campus-entrance.jpeg";
 import campusLab from "@/assets/campus-lab.jpeg";
@@ -46,26 +47,33 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
   const prev = () => setCurrent((c) => (c - 1 + heroImages.length) % heroImages.length);
   const next = () => setCurrent((c) => (c + 1) % heroImages.length);
 
+  const { scrollY } = useScroll();
+  const bgY = useTransform(scrollY, [0, 600], [0, 150]);
+  const textY = useTransform(scrollY, [0, 400], [0, -40]);
+  const overlayOpacity = useTransform(scrollY, [0, 500], [0.4, 0.8]);
+
   return (
     <section className="relative overflow-hidden">
       {/* Hero Image Carousel — Full viewport height */}
       <div className="relative h-[85vh] min-h-[480px] max-h-[800px]">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={current}
-            src={heroImages[current].src}
-            alt={heroImages[current].alt}
-            className="absolute inset-0 h-full w-full object-cover"
-            initial={{ opacity: 0, scale: 1.08 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 1.2, ease: "easeOut" as const }}
-            loading="eager"
-          />
-        </AnimatePresence>
+        <motion.div className="absolute inset-0 -inset-y-20" style={{ y: bgY }}>
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={current}
+              src={heroImages[current].src}
+              alt={heroImages[current].alt}
+              className="absolute inset-0 h-full w-full object-cover"
+              initial={{ opacity: 0, scale: 1.08 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 1.2, ease: "easeOut" as const }}
+              loading="eager"
+            />
+          </AnimatePresence>
+        </motion.div>
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/40 to-background" />
+        {/* Gradient overlay with scroll-driven opacity */}
+        <motion.div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/40 to-background" style={{ opacity: overlayOpacity }} />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-transparent to-transparent" />
 
         {/* Carousel controls */}
@@ -87,8 +95,8 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
           ))}
         </div>
 
-        {/* Main content overlay */}
-        <div className="absolute inset-0 flex items-center">
+        {/* Main content overlay with parallax text */}
+        <motion.div className="absolute inset-0 flex items-center" style={{ y: textY }}>
           <div className="container mx-auto px-4">
             <div className="max-w-2xl">
               <motion.div
@@ -163,7 +171,7 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
                       <stat.icon className="h-4 w-4 text-accent" />
                     </div>
                     <div>
-                      <span className="text-xl font-bold text-white">{stat.value}</span>
+                      <AnimatedCounter value={stat.value} className="text-xl font-bold text-white" />
                       <p className="text-xs text-white/60">{stat.label}</p>
                     </div>
                   </motion.div>
@@ -171,7 +179,7 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
               </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Quick Links section below hero */}
