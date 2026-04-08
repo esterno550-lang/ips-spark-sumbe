@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,8 +30,17 @@ const fadeUp = {
 };
 
 const NewsEventsSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const decorY = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]);
+
   return (
-    <section className="px-4 py-16">
+    <section ref={sectionRef} className="relative px-4 py-16 overflow-hidden">
+      {/* Parallax floating decorations */}
+      <motion.div
+        className="pointer-events-none absolute right-10 top-10 h-48 w-48 rounded-full bg-accent/8 blur-2xl"
+        style={{ y: decorY }}
+      />
       <div className="container mx-auto">
         <motion.h2
           className="mb-8 text-3xl font-bold text-foreground"
