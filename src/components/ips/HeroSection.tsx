@@ -178,8 +178,8 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
                 ))}
               </motion.div>
             </div>
+          </div>
         </motion.div>
-      </div>
       </div>
 
       {/* Quick Links section below hero */}
