@@ -65,6 +65,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Contacto — Instituto Politécnico do Sumbe"
+        description="Entre em contacto com o IPS. Morada do campus, telefones, email e formulário para esclarecer dúvidas sobre cursos e candidaturas."
+        path="/contact"
+      />
       <Header />
 
       <main>

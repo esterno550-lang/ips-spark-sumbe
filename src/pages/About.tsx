@@ -88,6 +88,11 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Sobre o IPS — História, Missão e Direcção"
+        description="Conheça a história, missão, valores e equipa directiva do Instituto Politécnico do Sumbe, instituição pública de ensino técnico em Cuanza Sul."
+        path="/about"
+      />
       <Header />
 
       <main>

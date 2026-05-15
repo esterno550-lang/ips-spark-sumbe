@@ -86,6 +86,11 @@ const AcademicCalendar = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Calendário Académico — IPS"
+        description="Calendário académico interactivo do Instituto Politécnico do Sumbe com aulas, datas de exames, eventos e feriados nacionais."
+        path="/calendario"
+      />
       <Header />
 
       <main>
