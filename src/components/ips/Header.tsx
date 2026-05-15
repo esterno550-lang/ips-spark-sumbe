@@ -118,10 +118,10 @@ const Header = () => {
         {/* Right side */}
         <div className="flex items-center gap-2">
           {searchOpen && (
-            <Input placeholder="Pesquisar..." className="hidden w-48 rounded-xl md:block" autoFocus />
+            <Input aria-label="Pesquisar no site" placeholder="Pesquisar..." className="hidden w-48 rounded-xl md:block" autoFocus />
           )}
-          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(!searchOpen)} className="hidden md:flex">
-            <Search className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={() => setSearchOpen(!searchOpen)} className="hidden md:flex" aria-label="Abrir pesquisa">
+            <Search className="h-4 w-4" aria-hidden="true" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => setDark(!dark)} aria-label="Alternar tema">
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -182,8 +182,10 @@ const Header = () => {
             size="icon"
             className="lg:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={mobileOpen}
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </Button>
         </div>
       </div>

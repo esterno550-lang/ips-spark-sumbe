@@ -283,6 +283,20 @@ const Admissions = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Admissões 2026 — Candidate-se ao IPS"
+        description="Candidaturas abertas para 2026 no Instituto Politécnico do Sumbe. Requisitos, prazos, taxa única de 2.000 Kz e formulário online de candidatura."
+        path="/admissions"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }}
+      />
       <Header />
 
       <main className="container mx-auto px-4 py-12">
@@ -300,20 +314,21 @@ const Admissions = () => {
         {/* Check Status Section */}
         <motion.section className="mb-12" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0.5}>
           <Card className="rounded-2xl border-border/50 p-6">
-            <h3 className="mb-4 text-lg font-bold text-foreground flex items-center gap-2">
+            <h2 className="mb-4 text-lg font-bold text-foreground flex items-center gap-2">
               <Search className="h-5 w-5 text-accent" />
               Consultar Estado da Candidatura
-            </h3>
+            </h2>
             <div className="flex gap-3">
               <Input
+                aria-label="Email para consultar candidatura"
                 placeholder="Introduza o seu email de candidatura..."
                 className="rounded-xl flex-1"
                 value={statusSearch}
                 onChange={(e) => setStatusSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCheckStatus()}
               />
-              <Button variant="hero" onClick={handleCheckStatus} disabled={statusLoading}>
-                {statusLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Consultar"}
+              <Button variant="hero" onClick={handleCheckStatus} disabled={statusLoading} aria-label="Consultar estado da candidatura">
+                {statusLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Consultar"}
               </Button>
             </div>
             {statusResult !== null && (

@@ -77,11 +77,11 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-transparent to-transparent" />
 
         {/* Carousel controls */}
-        <button onClick={prev} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/20 backdrop-blur-md text-white hover:bg-background/40 transition-all hover:scale-110">
-          <ChevronLeft className="h-5 w-5" />
+        <button onClick={prev} aria-label="Imagem anterior" className="absolute left-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/20 backdrop-blur-md text-white hover:bg-background/40 transition-all hover:scale-110">
+          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         </button>
-        <button onClick={next} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/20 backdrop-blur-md text-white hover:bg-background/40 transition-all hover:scale-110">
-          <ChevronRight className="h-5 w-5" />
+        <button onClick={next} aria-label="Próxima imagem" className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background/20 backdrop-blur-md text-white hover:bg-background/40 transition-all hover:scale-110">
+          <ChevronRight className="h-5 w-5" aria-hidden="true" />
         </button>
 
         {/* Dots */}
@@ -90,6 +90,7 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
             <button
               key={i}
               onClick={() => setCurrent(i)}
+              aria-label={`Ir para a imagem ${i + 1}`}
               className={`h-2.5 rounded-full transition-all duration-500 ${i === current ? "w-8 bg-accent" : "w-2.5 bg-white/40 hover:bg-white/60"}`}
             />
           ))}
@@ -192,7 +193,7 @@ const HeroSection = ({ onNavigate }: HeroSectionProps) => {
             transition={{ duration: 0.6 }}
           >
             <Card className="rounded-2xl border-border/50 bg-card/80 p-6 backdrop-blur-sm">
-              <h3 className="mb-4 text-lg font-semibold text-foreground">Links Rápidos</h3>
+              <h2 className="mb-4 text-lg font-semibold text-foreground">Links Rápidos</h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {quickLinks.map((link, i) => (
                   <motion.button
