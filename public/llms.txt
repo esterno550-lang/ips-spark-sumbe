@@ -1,0 +1,15 @@
+# Instituto Politécnico do Sumbe (IPS)
+
+> Instituto público de ensino médio técnico no Sumbe, Cuanza Sul, Angola — formação em Electricidade, Energias Renováveis e Frio & Climatização.
+
+## Pages
+
+- [Início](/): Apresentação do IPS, programas, notícias e visitas ao campus.
+- [Admissões](/admissions): Candidaturas 2026, requisitos, prazos e formulário online.
+- [Sobre](/about): História, missão, valores e direcção do instituto.
+- [Contacto](/contact): Formulário, morada, telefone e mapa do campus.
+- [Calendário Académico](/calendario): Calendário interactivo com aulas, exames e feriados.
+
+## Optional
+
+- [Entrar](/auth): Acesso de estudantes e professores.

@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/ips/Header";
 import Footer from "@/components/ips/Footer";
+import Seo from "@/components/seo/Seo";
 import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {
@@ -85,6 +86,11 @@ const AcademicCalendar = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Calendário Académico — IPS"
+        description="Calendário académico interactivo do Instituto Politécnico do Sumbe com aulas, datas de exames, eventos e feriados nacionais."
+        path="/calendario"
+      />
       <Header />
 
       <main>
@@ -111,14 +117,14 @@ const AcademicCalendar = () => {
               <Card className="rounded-2xl border-border/50 p-4 md:p-6">
                 {/* Month Navigation */}
                 <div className="flex items-center justify-between mb-6">
-                  <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-                    <ChevronLeft className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} aria-label="Mês anterior">
+                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                   </Button>
                   <h2 className="text-lg font-bold text-foreground capitalize">
                     {format(currentMonth, "MMMM yyyy", { locale: pt })}
                   </h2>
-                  <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-                    <ChevronRight className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} aria-label="Próximo mês">
+                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
                   </Button>
                 </div>
 

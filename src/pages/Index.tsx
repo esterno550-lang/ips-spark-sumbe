@@ -7,6 +7,7 @@ import HeroSection from "@/components/ips/HeroSection";
 import ProgramsSection from "@/components/ips/ProgramsSection";
 import NewsEventsSection from "@/components/ips/NewsEventsSection";
 import VisitSection from "@/components/ips/VisitSection";
+import Seo from "@/components/seo/Seo";
 
 const Index = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +21,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Instituto Politécnico do Sumbe — IPS Angola"
+        description="Formação técnica pública e gratuita no Sumbe, Cuanza Sul. Cursos em Electricidade, Energias Renováveis e Frio & Climatização. Candidaturas 2026 abertas."
+        path="/"
+      />
       <Header />
 
       <main>

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/ips/Header";
 import Footer from "@/components/ips/Footer";
+import Seo from "@/components/seo/Seo";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
@@ -64,6 +65,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Contacto — Instituto Politécnico do Sumbe"
+        description="Entre em contacto com o IPS. Morada do campus, telefones, email e formulário para esclarecer dúvidas sobre cursos e candidaturas."
+        path="/contact"
+      />
       <Header />
 
       <main>

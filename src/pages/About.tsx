@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Target, Eye, Heart, Zap, Award, Users, BookOpen, Calendar } from "lucide-react";
 import Header from "@/components/ips/Header";
 import Footer from "@/components/ips/Footer";
+import Seo from "@/components/seo/Seo";
 import AnimatedCounter from "@/components/ips/AnimatedCounter";
 import campusNight from "@/assets/campus-night.webp";
 import campusEntrance from "@/assets/campus-entrance.jpeg";
@@ -87,6 +88,11 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo
+        title="Sobre o IPS — História, Missão e Direcção"
+        description="Conheça a história, missão, valores e equipa directiva do Instituto Politécnico do Sumbe, instituição pública de ensino técnico em Cuanza Sul."
+        path="/about"
+      />
       <Header />
 
       <main>

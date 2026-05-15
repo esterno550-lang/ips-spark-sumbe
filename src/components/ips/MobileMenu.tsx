@@ -83,7 +83,7 @@ const MobileMenu = ({ open, onClose, navMenus, session, userRole, onLogout }: Mo
             ))}
 
             <motion.div variants={itemVariants} initial="hidden" animate="visible" custom={navMenus.length * 5}>
-              <Input placeholder="Pesquisar..." className="mt-2 rounded-xl" />
+              <Input aria-label="Pesquisar no site" placeholder="Pesquisar..." className="mt-2 rounded-xl" />
             </motion.div>
 
             {session ? (

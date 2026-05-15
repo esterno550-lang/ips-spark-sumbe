@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://ips-spark-sumbe.lovable.app/sitemap.xml
