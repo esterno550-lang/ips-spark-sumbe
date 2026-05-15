@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/ips/Header";
 import Footer from "@/components/ips/Footer";
+import Seo from "@/components/seo/Seo";
 import { supabase } from "@/integrations/supabase/client";
 
 const fadeUp = {

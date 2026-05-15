@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Target, Eye, Heart, Zap, Award, Users, BookOpen, Calendar } from "lucide-react";
 import Header from "@/components/ips/Header";
 import Footer from "@/components/ips/Footer";
+import Seo from "@/components/seo/Seo";
 import AnimatedCounter from "@/components/ips/AnimatedCounter";
 import campusNight from "@/assets/campus-night.webp";
 import campusEntrance from "@/assets/campus-entrance.jpeg";
