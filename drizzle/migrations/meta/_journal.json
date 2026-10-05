@@ -15,6 +15,13 @@
       "when": 1791243769993,
       "tag": "0001_demo_academic_data",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791243790305,
+      "tag": "0002_demo_student_enrollment_grades",
+      "breakpoints": true
     }
   ]
 }
