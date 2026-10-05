@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791243740282,
+      "tag": "0000_protect_personal_data_and_status_functions",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791243769993,
+      "tag": "0001_demo_academic_data",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791243790305,
+      "tag": "0002_demo_student_enrollment_grades",
+      "breakpoints": true
+    }
+  ]
+}
