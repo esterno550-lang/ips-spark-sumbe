@@ -474,6 +474,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_admission_status: {
+        Args: { _email: string }
+        Returns: {
+          course: string
+          created_at: string
+          first_cycle_grade: number
+          first_name: string
+          last_name: string
+          secondary_course: string
+          status: string
+        }[]
+      }
+      check_visit_status: {
+        Args: { _email: string }
+        Returns: {
+          created_at: string
+          num_visitors: number
+          status: string
+          visit_date: string
+          visitor_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
