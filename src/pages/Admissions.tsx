@@ -261,9 +261,7 @@ const Admissions = () => {
     if (!statusSearch.trim()) return;
     setStatusLoading(true);
     const { data, error } = await supabase
-      .from("admissions")
-      .select("first_name, last_name, course, secondary_course, first_cycle_grade, status, created_at")
-      .eq("email", statusSearch.trim().toLowerCase());
+      .rpc("check_admission_status", { _email: statusSearch.trim().toLowerCase() });
     
     setStatusLoading(false);
     if (error || !data || data.length === 0) {
