@@ -239,7 +239,7 @@ const AdminDashboard = () => {
     }
 
     setLoading(false);
-  }, []);
+  }, [fetchTableCounts]);
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate("/auth"); };
 
@@ -550,6 +550,97 @@ const AdminDashboard = () => {
             <TabsTrigger value="calendar" className="gap-2 rounded-xl"><Calendar className="h-4 w-4" />Calendário</TabsTrigger>
             <TabsTrigger value="dbhealth" className="gap-2 rounded-xl"><Database className="h-4 w-4" />Saúde BD</TabsTrigger>
           </TabsList>
+
+          {/* DB HEALTH TAB */}
+          <TabsContent value="dbhealth">
+            <Card className="rounded-2xl p-6">
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+                    <Database className="h-5 w-5 text-accent" />
+                    Saúde da Base de Dados
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Resumo de registos por tabela. Nenhum dado pessoal é exposto nesta vista.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {countsUpdatedAt && (
+                    <span className="text-xs text-muted-foreground">
+                      Atualizado às {countsUpdatedAt.toLocaleTimeString("pt-AO")}
+                    </span>
+                  )}
+                  <Button variant="outline" size="sm" onClick={fetchTableCounts} disabled={countsLoading} className="rounded-xl">
+                    {countsLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                    Atualizar
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mb-6 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-xl bg-accent/10 p-4">
+                  <p className="text-xs text-muted-foreground">Total de registos</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {tableCounts.reduce((sum, t) => sum + Number(t.row_count), 0).toLocaleString("pt-AO")}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-accent/10 p-4">
+                  <p className="text-xs text-muted-foreground">Tabelas monitorizadas</p>
+                  <p className="text-2xl font-bold text-foreground">{tableCounts.length}</p>
+                </div>
+                <div className="rounded-xl bg-green-500/10 p-4">
+                  <p className="text-xs text-muted-foreground">Estado</p>
+                  <p className="flex items-center gap-2 text-2xl font-bold text-green-500">
+                    <CheckCircle className="h-5 w-5" /> Operacional
+                  </p>
+                </div>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tabela</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead className="text-right">Registos</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tableCounts.map((t) => (
+                    <TableRow key={t.table_name}>
+                      <TableCell className="font-mono text-xs">{t.table_name}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {({
+                          admissions: "Candidaturas de admissão",
+                          announcements: "Anúncios institucionais",
+                          calendar_events: "Eventos do calendário académico",
+                          campus_photos: "Fotos do campus",
+                          campus_visits: "Visitas ao campus",
+                          courses: "Cursos técnicos",
+                          enrollments: "Matrículas de estudantes",
+                          grades: "Notas lançadas",
+                          profiles: "Perfis de utilizadores",
+                          schedules: "Horários de aulas",
+                          site_content: "Conteúdo editável do site",
+                          subjects: "Disciplinas",
+                          user_roles: "Papéis de acesso",
+                        } as Record<string, string>)[t.table_name] || "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant="secondary" className="rounded-lg">{Number(t.row_count).toLocaleString("pt-AO")}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {tableCounts.length === 0 && !countsLoading && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-sm text-muted-foreground">
+                        Sem dados disponíveis.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </TabsContent>
 
           {/* ADMISSIONS TAB */}
           <TabsContent value="admissions">
