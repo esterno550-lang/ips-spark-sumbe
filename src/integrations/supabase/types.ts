@@ -474,6 +474,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_table_counts: {
+        Args: never
+        Returns: {
+          row_count: number
+          table_name: string
+        }[]
+      }
       check_admission_status: {
         Args: { _email: string }
         Returns: {

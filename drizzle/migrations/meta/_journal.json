@@ -22,6 +22,13 @@
       "when": 1791243790305,
       "tag": "0002_demo_student_enrollment_grades",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791269325160,
+      "tag": "0003_admin_db_health_summary",
+      "breakpoints": true
     }
   ]
 }
