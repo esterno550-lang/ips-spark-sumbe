@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   LogOut, Users, Search, Trash2, Loader2, CheckCircle, XCircle, Clock,
   GraduationCap, Image, FileText, CalendarDays, Upload, Plus, Save, Edit2, X,
-  BookOpen, UserPlus, ClipboardList, Shield, Megaphone, Calendar,
+  BookOpen, UserPlus, ClipboardList, Shield, Megaphone, Calendar, Database, RefreshCw,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -133,6 +133,9 @@ const AdminDashboard = () => {
   const [newUserDialog, setNewUserDialog] = useState(false);
   const [newUserForm, setNewUserForm] = useState({ email: "", password: "", displayName: "", role: "teacher" });
   const [creatingUser, setCreatingUser] = useState(false);
+  const [tableCounts, setTableCounts] = useState<{ table_name: string; row_count: number }[]>([]);
+  const [countsLoading, setCountsLoading] = useState(false);
+  const [countsUpdatedAt, setCountsUpdatedAt] = useState<Date | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
