@@ -161,8 +161,19 @@ const AdminDashboard = () => {
     checkAuth();
   }, [navigate]);
 
+  const fetchTableCounts = useCallback(async () => {
+    setCountsLoading(true);
+    const { data, error } = await supabase.rpc("admin_table_counts");
+    if (!error && data) {
+      setTableCounts(data as { table_name: string; row_count: number }[]);
+      setCountsUpdatedAt(new Date());
+    }
+    setCountsLoading(false);
+  }, []);
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
+    fetchTableCounts();
     const [admRes, courseRes, contentRes, visitRes, photoRes, subRes, enrRes, schRes, annRes, calRes] = await Promise.all([
       supabase.from("admissions").select("*").order("last_name").order("first_name"),
       supabase.from("courses").select("*").order("sort_order"),
@@ -537,6 +548,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="content" className="gap-2 rounded-xl"><FileText className="h-4 w-4" />Conteúdo</TabsTrigger>
             <TabsTrigger value="visits" className="gap-2 rounded-xl"><CalendarDays className="h-4 w-4" />Visitas</TabsTrigger>
             <TabsTrigger value="calendar" className="gap-2 rounded-xl"><Calendar className="h-4 w-4" />Calendário</TabsTrigger>
+            <TabsTrigger value="dbhealth" className="gap-2 rounded-xl"><Database className="h-4 w-4" />Saúde BD</TabsTrigger>
           </TabsList>
 
           {/* ADMISSIONS TAB */}
